@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useAtom } from "jotai";
+import { atsAtom } from "../../store/AtsStore";
 
+import axios from 'axios'
 // CircularProgressbar component (simplified for this example)
 const CircularProgressbar = ({ value, text, styles }) => {
   const radius = 45;
@@ -55,22 +58,8 @@ export default function ATSDash() {
   const [jobDescription, setJobDescription] = useState("");
   const [resumeFile, setResumeFile] = useState(null);
   const [resumeFileName, setResumeFileName] = useState("");
+  const [atsData,setAtsData]=useAtom(atsAtom);
 
-  // Mock ATS analysis data
-  const [atsData, setAtsData] = useState({
-    ats_score: 75,
-    resume_summary: "Your resume matches 75% of the job requirements. Below are suggestions to improve your score.",
-    improvements: [
-      "Add more relevant skills from the job description",
-      "Include measurable achievements in your experience",
-      "Optimize for ATS-friendly formatting"
-    ],
-    missing_keywords: [
-      "React", "TypeScript", "Redux", 
-      "Node.js", "REST API", "Jest",
-      "AWS", "CI/CD", "Agile"
-    ]
-  });
 
   // Simple Button component
   const Button = ({ text, onClick, variant = 'primary', className = '', disabled = false }) => {
@@ -98,39 +87,37 @@ export default function ATSDash() {
       setResumeFileName(file.name);
     }
   };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    if (!jobDescription.trim() || !resumeFile) {
-      alert("Please enter a job description and upload your resume");
-      return;
-    }
-    
-    setLoading(true);
-    
-    // Simulate API call delay
-    setTimeout(() => {
-      // In a real app, you would analyze the resume against the job description here
-      setLoading(false);
-      setSubmitted(true);
-      
-      // Animate percentage increase
-      const duration = 1500;
-      const increment = 1;
-      const intervalTime = duration / atsData.ats_score;
+const handleSubmit = async (e) => {
+  e.preventDefault();
   
-      const interval = setInterval(() => {
-        setPercentage(prev => {
-          if (prev >= atsData.ats_score) {
-            clearInterval(interval);
-            return atsData.ats_score;
-          }
-          return prev + increment;
-        });
-      }, intervalTime);
-    }, 2000);
-  };
+  if (!jobDescription.trim() || !resumeFile) {
+    alert("Please enter a job description and upload your resume");
+    return;
+  }
+
+  setLoading(true);  // Add loading state
+
+  const formData = new FormData();
+  formData.append("file", resumeFile);  // Fix: Use `resumeFile` instead of undefined `file`
+  formData.append("job_description", jobDescription);
+
+  try {
+    const response = await axios.post("http://localhost:8080/ats/ats-details", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    if (response.data.success) {
+      setAtsData(response.data.data);  // Fix: Use `setAtsData` from Jotai
+      setPercentage(response.data.data.score || 0);  // Update percentage
+      setSubmitted(true);
+    }
+  } catch (error) {
+    console.error("Error submitting form:", error);
+    alert("There was an error submitting your data.");
+  } finally {
+    setLoading(false);  // Reset loading state
+  }
+};
 
   const handleReset = () => {
     setSubmitted(false);
@@ -255,11 +242,11 @@ export default function ATSDash() {
                       
                       <div className="mx-auto w-48 h-48 mb-6">
                         <CircularProgressbar
-                          value={percentage}
-                          text={`${percentage}%`}
+                          value={atsData.ats_score}
+                          text={`${atsData.ats_score}%`}
                           styles={{
                             path: {
-                              stroke: `rgba(0, 180, 216, ${percentage / 100})`,
+                              stroke: `rgba(0, 180, 216, ${atsData.ats_score / 100})`,
                               strokeLinecap: 'round'
                             },
                             trail: {

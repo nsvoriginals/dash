@@ -140,7 +140,7 @@ export default function SignIn() {
           />
           
           <div className="flex justify-end">
-            <Link to="/forgot-password" className="text-sm text-[#00b4d8] hover:underline">
+            <Link to="/forgot-password" className="text-sm text-[#00b4d8] hover:text-white">
               Forgot password?
             </Link>
           </div>
@@ -156,7 +156,7 @@ export default function SignIn() {
         <div className="mt-6 text-center">
           <p className="text-gray-400">
             Don't have an account?{" "}
-            <Link to="/signup" className="text-[#00b4d8] hover:underline font-medium">
+            <Link to="/signup" className="text-[#00b4d8] hover:text-white font-medium">
               Create Account
             </Link>
           </p>
