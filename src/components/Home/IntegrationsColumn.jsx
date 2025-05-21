@@ -23,7 +23,7 @@ function IntegrationsColumn({ integrations, className = "", reverse = false }) {
                 integrations.map((int) => (
                     <div
                         key={`${int.name}-${arrayIndex}`}
-                        className="bg-black border border-white/10 rounded-3xl p-6"
+                        className="flex flex-col gap-4 bg-[#1A1A1A] p-6 rounded-xl border border-white/10"
                     >
                         <div className="flex justify-center">
                             <img

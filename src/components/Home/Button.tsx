@@ -17,7 +17,7 @@ export default function Button({
     const baseStyles = "inline-flex items-center justify-center rounded-full font-medium transition-colors";
     
     const variants = {
-        primary: "bg-[#5044e4] text-white hover:bg-[#4338ca]",
+        primary: "bg-[#00b4d8]  text-white hover:bg-[#4338ca]",
         secondary: "bg-neutral-900 text-white hover:bg-neutral-800",
         ghost: "text-white/50 hover:text-white hover:bg-white/5"
     };

@@ -19,7 +19,7 @@ const features = [
 
 export default function Features() {
     return (
-        <section className="py-24 bg-black">
+        <section className="py-24 bg-[#1A1A1A]">
             <div className="container mx-auto px-4">
                 <div className="flex justify-center">
                     <Tag>Features</Tag>

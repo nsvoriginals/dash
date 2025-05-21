@@ -12,7 +12,7 @@ const footerLinks = [
 
 export default function Footer() {
     return (
-        <footer className="py-12 border-t border-white/10 bg-black">
+        <footer className="py-12 border-t border-white/10 bg-[#1A1A1A]">
             <div className="container max-w-5xl mx-auto px-4">
                 <div className="flex flex-col items-center gap-8">
                     <div className="flex flex-col md:flex-row items-center justify-between w-full gap-8">

@@ -8,7 +8,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 function App() {
   return (
     <BrowserRouter>
-      <div className='m-0 p-0 w-screen min-h-screen font-Tensor bg-black '>
+      <div className='m-0 p-0 w-screen min-h-screen font-Tensor bg-[#1A1A1A]'>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/dashboard" element={<Dashboard />} />
@@ -18,4 +18,4 @@ function App() {
   )
 }
 
-export default App
+export default App;

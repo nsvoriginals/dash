@@ -24,7 +24,7 @@ const logos = [
 
 export default function LogoTicker() {
     return (
-        <section className="py-12 w-full bg-black">
+        <section className="py-12 w-full bg-[#1A1A1A]">
             <div className="container mx-auto px-4">
                 <h2 className="text-2xl font-medium text-center mb-8 text-white/80">
                     Trusted by the best
