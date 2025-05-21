@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "test:production": "npm run build && vercel dist",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint ."
