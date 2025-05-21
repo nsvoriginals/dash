@@ -4,6 +4,7 @@ import Button from "../Home/Button";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { AnimatePresence, motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const navLinks = [
     { label: "Home", href: "#" },
@@ -13,6 +14,7 @@ const navLinks = [
 ];
 
 export default function Navbar() {
+    const navigate = useNavigate()
     const [isOpen, setIsOpen] = useState(false);
     return (
         <>
@@ -31,8 +33,8 @@ export default function Navbar() {
                             <div className="lg:flex justify-center items-center hidden">
                                 <nav className="flex gap-4 font-medium">
                                     {navLinks.map((link) => (
-                                        <a 
-                                            href={link.href} 
+                                        <a
+                                            href={link.href}
                                             key={link.label}
                                             className="text-white/80 hover:text-white transition-colors"
                                         >
@@ -92,12 +94,14 @@ export default function Navbar() {
                                     </svg>
                                 </button>
                                 <Button
-                                    variant="secondary"
+                                     onClick={() => navigate('/signin')}
+                                  variant="secondary"
                                     className="hidden md:inline-flex items-center"
                                 >
                                     Log In
                                 </Button>
                                 <Button
+                                    onClick={() => navigate('/signup')}
                                     variant="primary"
                                     className="hidden md:inline-flex items-center"
                                 >
@@ -130,7 +134,8 @@ export default function Navbar() {
                                             >
                                                 Log In
                                             </Button>
-                                            <Button 
+                                            <Button
+                                                onClick={() => navigate('/signup')}
                                                 variant="primary"
                                                 className="w-full"
                                             >
