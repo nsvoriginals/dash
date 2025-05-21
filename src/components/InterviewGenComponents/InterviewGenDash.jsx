@@ -1,45 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { QuestionCard } from "./QuestionCard";
+import { useAtom } from "jotai";
+import resumeAtom from '../../store/Resume' // Import the resumeAtom from your store
+import { useNavigate } from "react-router-dom";
+import { jsPDF } from "jspdf";
 
 // Sample mock data for interview questions
-const mockQuestions = [
-  {
-    question: "What are the key differences between React hooks and class components?",
-    expected_answer: "React hooks allow functional components to use state and lifecycle features previously only available in class components. They're more concise, avoid the complexity of 'this', enable better code reuse through custom hooks, and make related logic easier to keep together.",
-    difficulty: "Medium",
-    type: "Technical",
-    skill_tested: "React"
-  },
-  {
-    question: "Explain how blockchain consensus mechanisms work and compare Proof of Work vs Proof of Stake.",
-    expected_answer: "Consensus mechanisms are protocols that ensure all nodes in a blockchain network agree on the current state. Proof of Work requires miners to solve complex puzzles, consuming significant energy but providing strong security. Proof of Stake selects validators based on the amount of cryptocurrency they stake, which is more energy-efficient but potentially less decentralized.",
-    difficulty: "Hard",
-    type: "Technical",
-    skill_tested: "Blockchain"
-  },
-  {
-    question: "Describe a challenging project you worked on and how you overcame obstacles.",
-    expected_answer: "Look for answers that demonstrate problem-solving, resilience, teamwork, and project management skills. Candidates should explain the challenge, their approach, actions taken, and results achieved.",
-    difficulty: "Medium",
-    type: "Behavioral",
-    skill_tested: "Problem Solving"
-  },
-  {
-    question: "How would you design a distributed system that needs to handle millions of concurrent users?",
-    expected_answer: "Good answers should cover scalability approaches (horizontal vs vertical), load balancing, caching strategies, database sharding, microservices architecture, fault tolerance, and consistency models like eventual consistency vs strong consistency.",
-    difficulty: "Hard",
-    type: "System Design",
-    skill_tested: "Distributed Systems"
-  },
-  {
-    question: "What strategies do you use to stay updated with rapidly evolving technologies in your field?",
-    expected_answer: "Look for mentions of following tech blogs/newsletters, participating in online communities, contributing to open source, attending conferences/meetups, taking courses, building side projects, and having a systematic approach to continuous learning.",
-    difficulty: "Easy",
-    type: "Behavioral",
-    skill_tested: "Continuous Learning"
-  }
-];
 
 // Simple Button component
 const Button = ({ text, onClick, className = '', disabled = false }) => {
@@ -58,43 +25,84 @@ const Button = ({ text, onClick, className = '', disabled = false }) => {
 };
 
 export default function InterviewQuestionsGenerator() {
+  // Access and use resumeAtom from your store
+  const [resumeData,setResumeData] = useAtom(resumeAtom);
+  
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState("");
   const [experience, setExperience] = useState("mid");
   const [skills, setSkills] = useState("");
   const [questions, setQuestions] = useState([]);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+ if(resumeData=={}){
+  setResumeData(localStorage.getItem("resumeData"))
+ }
+
+  // Auto-navigate option (commented out for now)
+  /* 
+  useEffect(() => {
+    if (questions.length > 0) {
+      navigate("/interview-questions", { state: { questions } });
+    }
+  }, [questions, navigate]);
+  */
+
+
+  // In the handleSubmit function, update the response handling:
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (!role.trim()) {
+    alert("Please enter a job role");
+    return;
+  }
+  
+  setLoading(true);
+  
+  try {
+    // Prepare the data to send
+    const requestData = {
+      jobRole: role,
+      experience: experience,
+      topics: skills.trim() ? skills.split(',').map(item => item.trim()) : [], 
+      resumeData: resumeData
+    };
+
+    const response = await fetch("http://localhost:8080/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestData),
+    });
     
-    if (!role.trim()) {
-      alert("Please enter a job role");
-      return;
+    const data = await response.json();
+    
+    // Handle the response structure
+    if (data.success && data.data?.interview_questions) {
+      setQuestions(data.data.interview_questions);
+      setSubmitted(true);
+    } else {
+      throw new Error("Invalid response format");
     }
     
-    setLoading(true);
-    
-    // Simulate API call delay
-    setTimeout(() => {
-      // In a real app, you would make an API call to generate questions based on inputs
-      setQuestions(mockQuestions);
-      setLoading(false);
-      setSubmitted(true);
-    }, 2000);
-  };
+  } catch (error) {
+    console.error("Error generating questions:", error);
+    alert("Failed to generate interview questions. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
+ 
   const handleReset = () => {
     setSubmitted(false);
     setRole("");
     setSkills("");
     setExperience("mid");
     setQuestions([]);
-  };
-
-  const exportToPDF = () => {
-    // Mock function - in a real app this would use jsPDF or another library
-    alert("PDF export functionality would be implemented here");
   };
 
   // Loading state
@@ -105,6 +113,78 @@ export default function InterviewQuestionsGenerator() {
       </div>
     </main>
   );
+
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+  
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(24);
+    
+    const headerText = "Atlas AI";
+    const headerWidth = doc.getTextWidth(headerText);
+    const headerX = (doc.internal.pageSize.width - headerWidth) / 2;
+    doc.text(headerText, headerX, 15);
+
+    const pageHeight = doc.internal.pageSize.height;
+    const pageWidth = doc.internal.pageSize.width;
+    doc.rect(10, 20, pageWidth - 20, pageHeight - 30);
+
+    doc.setFontSize(16);
+    doc.text("Interview Questions", 14, 35);
+
+    let yPosition = 45;
+    const margin = 14;
+    const lineHeight = 10;
+    const maxWidth = 180;
+
+    const wrapText = (text, x, y, maxWidth) => {
+      let lines = doc.splitTextToSize(text, maxWidth);
+      doc.text(lines, x, y);
+      return y + (lines.length * lineHeight);
+    };
+
+    questions.forEach((question, index) => {
+      yPosition = wrapText(`${index + 1}. ${question.question}`, margin, yPosition, maxWidth);
+      yPosition = wrapText(`Expected Answer: ${question.expected_answer}`, margin, yPosition, maxWidth);
+      yPosition = wrapText(`Difficulty: ${question.difficulty}`, margin, yPosition, maxWidth);
+      yPosition = wrapText(`Type: ${question.type}`, margin, yPosition, maxWidth);
+      yPosition = wrapText(`Skill Tested: ${question.skill_tested}`, margin, yPosition, maxWidth);
+      yPosition += 10;
+
+      if (yPosition > pageHeight - 20) {
+        doc.addPage();
+        doc.setFontSize(24);
+        doc.text(headerText, headerX, 15);
+        doc.rect(10, 20, pageWidth - 20, pageHeight - 30);
+        doc.setFontSize(16);
+        doc.text("Interview Questions", 14, 35);
+        yPosition = 45;
+      }
+    });
+
+    doc.save("interview_questions.pdf");
+  };
+
+
+  // Helper function to extract resume info for display (optional)
+  const getResumeInfo = () => {
+    const basicInfo = [];
+    
+    if (resumeData.basics && resumeData.basics.name) 
+      basicInfo.push(`Name: ${resumeData.basics.name}`);
+    
+    if (resumeData.basics && resumeData.basics.label) 
+      basicInfo.push(`Title: ${resumeData.basics.label}`);
+    
+    const skillsList = resumeData.skills?.map(skill => skill.name).join(", ") || "";
+    if (skillsList) basicInfo.push(`Skills: ${skillsList}`);
+    
+    return basicInfo;
+  };
+
+  const resumeInfo = getResumeInfo();
+  const hasResumeData = resumeInfo.length > 0;
 
   return (
     <main className="flex-1 bg-[#131515] overflow-auto min-h-screen">
@@ -132,6 +212,21 @@ export default function InterviewQuestionsGenerator() {
                   Enter job details to generate tailored interview questions for your next hire.
                 </p>
                 
+                {/* Resume Data Alert/Info */}
+                {hasResumeData && (
+                  <div className="bg-[#2a2a2a] border border-[#3a3a3a] rounded-lg p-4 mb-6">
+                    <h3 className="text-[#00b4d8] font-medium mb-2">Resume Data Detected</h3>
+                    <div className="text-gray-300 text-sm">
+                      {resumeInfo.map((info, index) => (
+                        <div key={index} className="mb-1">{info}</div>
+                      ))}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-2">
+                      This data will be used to generate more personalized questions.
+                    </div>
+                  </div>
+                )}
+                
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Job Role */}
                   <div className="space-y-2">
@@ -155,7 +250,7 @@ export default function InterviewQuestionsGenerator() {
                           onClick={() => setExperience(level)}
                           className={`py-2 rounded-lg transition-colors ${
                             experience === level 
-                              ? 'bg-[#00b4d8]  text-white' 
+                              ? 'bg-[#00b4d8] text-white' 
                               : 'bg-[#2b2b2b] text-gray-300 hover:bg-[#3b3b3b]'
                           }`}
                         >
@@ -167,12 +262,12 @@ export default function InterviewQuestionsGenerator() {
 
                   {/* Special Skills */}
                   <div className="space-y-2">
-                    <label className="block text-white font-medium">Special Skills (Optional)</label>
+                    <label className="block text-white font-medium">Special Skills/Topics (Optional)</label>
                     <textarea
                       value={skills}
                       onChange={(e) => setSkills(e.target.value)}
                       className="w-full h-32 bg-[#2b2b2b] text-white rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                      placeholder="e.g. React, TypeScript, Blockchain, Smart Contracts"
+                      placeholder="e.g. React, TypeScript, Blockchain, Smart Contracts (comma separated)"
                     />
                   </div>
 
@@ -180,7 +275,7 @@ export default function InterviewQuestionsGenerator() {
                   <Button 
                     text="Generate Questions" 
                     onClick={handleSubmit}
-                    className="w-full py-3 bg-[#00b4d8]  text-white hover:bg-indigo-700"
+                    className="w-full py-3 bg-[#00b4d8] text-white hover:bg-indigo-700"
                     disabled={!role.trim()}
                   />
                 </form>
@@ -211,31 +306,29 @@ export default function InterviewQuestionsGenerator() {
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5 }}
                 >
-                  {questions.map((question, index) => (
-                    <motion.div
-                      key={index}
-                      className="mb-4"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1, type: "spring", stiffness: 50 }}
-                    >
-                      <QuestionCard
-                        no={index + 1}
-                        question={question.question}
-                        answer={question.expected_answer}
-                        difficulty={question.difficulty}
-                        type={question.type}
-                        skills={question.skill_tested}
-                      />
-                    </motion.div>
-                  ))}
+                 
+
+{questions.map((question, index) => (
+  <motion.div key={question.id || index} className="mb-4">
+    <QuestionCard
+      no={index + 1}
+      question={question.question}
+      answer={question.expected_answer}
+      difficulty={question.difficulty}
+      type={question.type}
+      skills={question.skill_tested}
+    />
+  </motion.div>
+))}
                 </motion.div>
 
-                <Button
-                  onClick={exportToPDF}
-                  text="Export as PDF"
-                  className="w-full  text-white p-2 rounded-lg hover:bg-indigo-700 mt-4"
-                />
+                <div className="flex mt-6 space-x-4">
+                  <Button
+                    onClick={exportToPDF}
+                    text="Export as PDF"
+                    className="flex-1 bg-[#00b4d8] text-white p-3 rounded-lg hover:bg-indigo-700"
+                  />
+                </div>
               </>
             )}
           </div>

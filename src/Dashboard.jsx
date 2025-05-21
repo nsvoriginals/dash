@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import ATSDash from "./components/ATSComponents/AtsDash";
 import InterviewQuestionsGenerator from "./components/InterviewGenComponents/InterviewGenDash";
-import ProfileDash from "./components/ProfileComponents/PortfolioDash";
+import ProfileDash from "./components/ProfileComponents/ProfileDash";
 import PortfolioDash from "./components/PortfolioComponents/PortfolioDash";
 import ResumeBuilderDash from "./components/ResumeBuildComponents/ResumeBuildDash";
 

@@ -3,19 +3,17 @@ import { motion } from "framer-motion";
 
 export const QuestionCard = ({ no, question, answer, difficulty, type, skills }) => {
   const [expanded, setExpanded] = React.useState(false);
+const difficultyColor = 
+  (difficulty?.toLowerCase() === "easy") ? "bg-green-500" :
+  (difficulty?.toLowerCase() === "medium") ? "bg-yellow-500" :
+  (difficulty?.toLowerCase() === "hard") ? "bg-red-500" :
+  "bg-gray-500";
 
-  // Determine difficulty badge color
-  const difficultyColor = 
-    difficulty.toLowerCase() === "easy" ? "bg-green-500" :
-    difficulty.toLowerCase() === "medium" ? "bg-yellow-500" :
-    "bg-red-500";
-
-  // Determine type badge color
-  const typeColor =
-    type.toLowerCase() === "technical" ? "bg-indigo-500" :
-    type.toLowerCase() === "behavioral" ? "bg-purple-500" :
-    type.toLowerCase() === "system design" ? "bg-blue-500" :
-    "bg-gray-500";
+const typeColor =
+  (type?.toLowerCase() === "technical") ? "bg-indigo-500" :
+  (type?.toLowerCase() === "behavioral") ? "bg-purple-500" :
+  (type?.toLowerCase() === "system design") ? "bg-blue-500" :
+  "bg-gray-500";
 
   return (
     <motion.div
