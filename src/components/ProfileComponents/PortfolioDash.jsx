@@ -56,7 +56,7 @@ export default function ProfileDashboard() {
           <Button 
             text={isEditing ? "Save" : "Edit"}
             onClick={() => setIsEditing(!isEditing)}
-            className="mt-2 bg-indigo-600 text-white hover:bg-indigo-700"
+            className="mt-2 bg-[#00b4d8]  text-white hover:bg-[#00b4d8] "
           />
         </div>
 

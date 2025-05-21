@@ -11,15 +11,17 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, toggleSidebar
   ];
 
   return (
-    <div className={`bg-[#1A1A1A] text-white w-84 h-full flex flex-col  px-3 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+    <div className={`bg-[#1A1A1A]  text-white w-84 h-full flex flex-col  px-3 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
       {/* User profile section */}
       <div className="p-6 flex items-center space-x-4 border-b border-gray-700">
         <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
-          <span className="text-xl font-bold">U</span>
+          <img 
+          className="rounded-full p-0"
+          src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg?semt=ais_hybrid&w=740" alt="" />
         </div>
         <div>
           <h3 className="font-semibold">User Name</h3>
-          <p className="text-sm text-gray-400">Pro Member</p>
+          <p className="text-sm text-gray-400">Member</p>
         </div>
       </div>
 
@@ -30,8 +32,8 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, toggleSidebar
             <li key={item}>
               <button
                 onClick={() => setActiveTab(item)}
-                className={`w-full text-left py-3 px-6 flex items-center space-x-3 hover:bg-blue-600 transition-colors ${
-                  activeTab === item ? "bg-blue-700 border-l-4 border-blue-400" : ""
+                className={`w-full text-left py-3 my-3 px-6 flex items-center space-x-3 hover:bg-[#00b4d8] transition-colors ${
+                  activeTab === item ? "bg-[#00b4d8] border-l-4 border-blue-400" : ""
                 }`}
               >
                 <div className="w-5 h-5">

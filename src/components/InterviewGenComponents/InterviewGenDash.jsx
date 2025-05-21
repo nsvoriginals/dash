@@ -155,7 +155,7 @@ export default function InterviewQuestionsGenerator() {
                           onClick={() => setExperience(level)}
                           className={`py-2 rounded-lg transition-colors ${
                             experience === level 
-                              ? 'bg-indigo-600 text-white' 
+                              ? 'bg-[#00b4d8]  text-white' 
                               : 'bg-[#2b2b2b] text-gray-300 hover:bg-[#3b3b3b]'
                           }`}
                         >
@@ -180,7 +180,7 @@ export default function InterviewQuestionsGenerator() {
                   <Button 
                     text="Generate Questions" 
                     onClick={handleSubmit}
-                    className="w-full py-3 bg-indigo-600 text-white hover:bg-indigo-700"
+                    className="w-full py-3 bg-[#00b4d8]  text-white hover:bg-indigo-700"
                     disabled={!role.trim()}
                   />
                 </form>
@@ -234,7 +234,7 @@ export default function InterviewQuestionsGenerator() {
                 <Button
                   onClick={exportToPDF}
                   text="Export as PDF"
-                  className="w-full bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 mt-4"
+                  className="w-full  text-white p-2 rounded-lg hover:bg-indigo-700 mt-4"
                 />
               </>
             )}

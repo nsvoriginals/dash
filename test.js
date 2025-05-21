@@ -1,4 +1,6 @@
-{
+
+import { render } from "./src/lib/index.js"
+const data={
   "basics": {
     "name": "John Doe",
     "label": "Programmer",
@@ -107,8 +109,7 @@
     ],
     "url": "https://project.com/"
   }]
+}
 
-  
 
-  #5044e4
-
+render(resume);

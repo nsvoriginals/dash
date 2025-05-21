@@ -77,7 +77,7 @@ export default function ATSDash() {
     const baseStyles = "px-4 py-2 rounded-lg font-medium transition-colors";
     const variantStyles = variant === 'secondary' 
       ? "bg-gray-700 text-white hover:bg-gray-600" 
-      : "bg-indigo-600 text-white hover:bg-indigo-700";
+      : "bg-[#00b4d8]  text-white hover:bg-[#00b4d8] ";
     const disabledStyles = disabled ? "opacity-50 cursor-not-allowed" : "";
     
     return (
@@ -189,10 +189,10 @@ export default function ATSDash() {
                       />
                       <label 
                         htmlFor="resume-upload" 
-                        className="cursor-pointer flex-1 border-2 border-dashed border-gray-600 rounded-lg p-4 text-center hover:border-indigo-500 transition-colors"
+                        className="cursor-pointer flex-1 border-2 border-dashed border-gray-600 rounded-lg p-4 text-center hover:border-[#00b4d8] transition-colors"
                       >
                         {resumeFileName ? (
-                          <span className="text-indigo-400">{resumeFileName}</span>
+                          <span className="text-[#00b4d8]">{resumeFileName}</span>
                         ) : (
                           <span className="text-gray-400">Click to upload PDF, DOC, or DOCX</span>
                         )}
@@ -206,7 +206,7 @@ export default function ATSDash() {
                     <textarea
                       value={jobDescription}
                       onChange={(e) => setJobDescription(e.target.value)}
-                      className="w-full h-48 bg-[#2b2b2b] text-white rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                      className="w-full h-48 bg-[#2b2b2b] text-white rounded-lg p-3 focus:ring-2 focus:ring-[#00b4d8] focus:outline-none"
                       placeholder="Paste the job description here..."
                     />
                   </div>
@@ -259,7 +259,7 @@ export default function ATSDash() {
                           text={`${percentage}%`}
                           styles={{
                             path: {
-                              stroke: `rgba(79, 70, 229, ${percentage / 100})`,
+                              stroke: `rgba(0, 180, 216, ${percentage / 100})`,
                               strokeLinecap: 'round'
                             },
                             trail: {
@@ -306,7 +306,7 @@ export default function ATSDash() {
                             transition={{ delay: 0.3 + (idx * 0.1) }}
                             className="flex items-start p-3 hover:bg-[#2b2b2b] rounded-lg transition-colors"
                           >
-                            <div className="flex-shrink-0 h-5 w-5 rounded-full bg-indigo-600 flex items-center justify-center mr-3 mt-1" />
+                            <div className="flex-shrink-0 h-5 w-5 rounded-full bg-[#00b4d8] flex items-center justify-center mr-3 mt-1" />
                             <p className="text-gray-300 text-sm sm:text-base">{item}</p>
                           </motion.li>
                         ))}
@@ -331,9 +331,9 @@ export default function ATSDash() {
                             animate={{ scale: 1, opacity: 1 }}
                             transition={{ delay: 0.5 + (idx * 0.05) }}
                             className={`px-3 py-1.5 rounded-full text-sm ${
-                              idx % 3 === 0 ? 'bg-indigo-600 text-white' :
-                              idx % 3 === 1 ? 'bg-pink-600 text-white' :
-                              'bg-teal-600 text-white'
+                              idx % 3 === 0 ? 'bg-[#00b4d8] text-white' :
+                              idx % 3 === 1 ? 'bg-[#00b4d8]/80 text-white' :
+                              'bg-[#00b4d8]/60 text-white'
                             } font-medium`}
                           >
                             {skill}
@@ -347,12 +347,12 @@ export default function ATSDash() {
                       initial={{ opacity: 0, y: 50 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.6 }}
-                      className="bg-indigo-600 rounded-xl p-6 text-white"
+                      className="bg-[#00b4d8] rounded-xl p-6 text-white"
                     >
                       <h2 className="text-2xl font-bold mb-4 text-center">
                         Ready to optimize your resume?
                       </h2>
-                      <p className="text-indigo-100 mb-6 text-center">
+                      <p className="text-white/90 mb-6 text-center">
                         Implement these suggestions to increase your chances of passing automated screening systems.
                       </p>
                       <div className="flex justify-center">
