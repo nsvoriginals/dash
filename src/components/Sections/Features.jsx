@@ -8,13 +8,13 @@ import Avatar from "../Home/Avatar";
 import Key from "../Home/Key";
 
 const features = [
-    "Asset Library",
-    "Code Preview",
-    "Flow Mode",
-    "Smart Sync",
-    "Auto Layout",
-    "Fast Search",
-    "Smart Guides",
+    "Resume Builder",
+    "Industry Trends",
+    "Optimizations",
+    "Sleek UI",
+    "Interactive Prototyping",
+    "Responsive Design",
+    "AI-Powered",
 ];
 
 export default function Features() {
@@ -25,8 +25,8 @@ export default function Features() {
                     <Tag>Features</Tag>
                 </div>
                 <h2 className="text-4xl md:text-5xl lg:text-6xl font-medium text-center mt-6 max-w-2xl mx-auto">
-                    Where power meets{" "}
-                    <span className="text-[#5044e4]">simplicity</span>
+                    Where Technology meets{" "}
+                    <span className="text-[#00b4d8]">utility</span>
                 </h2>
                 <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-4 lg:grid-cols-3">
                     <FeatureCard

@@ -45,12 +45,12 @@ export default function Hero() {
 
     return (
         <section
-            className="py-24 overflow-x-clip"
+            className="py-24 overflow-x-hidden"
             style={{
                 cursor: `url(${cursorYouImage}), auto`,
             }}
         >
-            <div className="container relative mx-auto px-4 max-w-7xl">
+            <div className="container relative mx-auto px-6 sm:px-8 max-w-7xl">
                 <motion.div
                     ref={leftPointerRef}
                     variants={leftPointerVariants}
@@ -75,13 +75,11 @@ export default function Hero() {
                         ✨ Version V1 Released
                     </div>
                 </div>
-                <h1 className="text-6xl md:text-7xl lg:text-8xl font-medium text-center mt-6">
-                    Leveraging AI, <br />changing lives
+                <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-medium text-center mt-6">
+                    Ace your interviews <br />every single time
                 </h1>
-                <p className="text-center text-xl text-white/80 mt-8 max-w-2xl mx-auto">
-                    🚀 Deploy your React apps effortlessly — just provide a Git
-                    URL, We handle the build and deployment. No setups, no
-                    delays. Go live in seconds with ease!
+                <p className="text-center text-lg sm:text-xl text-white/80 mt-8 max-w-2xl mx-auto px-4">
+                    🚀 Just share your skills and goals—we handle the rest. No lengthy setups, no delays. Get matched with dream jobs, tools, and growth opportunities instantly. Your future starts now! 
                 </p>
                 <form className="flex flex-col md:flex-row border border-white/15 rounded-full mt-8 p-1 md:p-2 max-w-lg mx-auto justify-between">
                     <input

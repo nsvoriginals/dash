@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { atsAtom } from "../../store/AtsStore";
 
-import axios from 'axios'
+import axios from 'axios';
+
 // CircularProgressbar component (simplified for this example)
 const CircularProgressbar = ({ value, text, styles }) => {
   const radius = 45;
@@ -51,22 +52,20 @@ const CircularProgressbar = ({ value, text, styles }) => {
 };
 
 export default function ATSDash() {
-
   const [percentage, setPercentage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [jobDescription, setJobDescription] = useState("");
   const [resumeFile, setResumeFile] = useState(null);
   const [resumeFileName, setResumeFileName] = useState("");
-  const [atsData,setAtsData]=useAtom(atsAtom);
-
+  const [atsData, setAtsData] = useAtom(atsAtom);
 
   // Simple Button component
   const Button = ({ text, onClick, variant = 'primary', className = '', disabled = false }) => {
     const baseStyles = "px-4 py-2 rounded-lg font-medium transition-colors";
     const variantStyles = variant === 'secondary' 
       ? "bg-gray-700 text-white hover:bg-gray-600" 
-      : "bg-[#00b4d8]  text-white hover:bg-[#00b4d8] ";
+      : "bg-[#00b4d8] text-white hover:bg-[#00b4d8]";
     const disabledStyles = disabled ? "opacity-50 cursor-not-allowed" : "";
     
     return (
@@ -74,6 +73,7 @@ export default function ATSDash() {
         onClick={onClick}
         disabled={disabled}
         className={`${baseStyles} ${variantStyles} ${disabledStyles} ${className}`}
+        type={onClick === handleSubmit ? "submit" : "button"}
       >
         {text}
       </button>
@@ -87,37 +87,39 @@ export default function ATSDash() {
       setResumeFileName(file.name);
     }
   };
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  if (!jobDescription.trim() || !resumeFile) {
-    alert("Please enter a job description and upload your resume");
-    return;
-  }
 
-  setLoading(true);  // Add loading state
-
-  const formData = new FormData();
-  formData.append("file", resumeFile);  // Fix: Use `resumeFile` instead of undefined `file`
-  formData.append("job_description", jobDescription);
-
-  try {
-    const response = await axios.post("http://localhost:8080/ats/ats-details", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-
-    if (response.data.success) {
-      setAtsData(response.data.data);  // Fix: Use `setAtsData` from Jotai
-      setPercentage(response.data.data.score || 0);  // Update percentage
-      setSubmitted(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!jobDescription.trim() || !resumeFile) {
+      alert("Please enter a job description and upload your resume");
+      return;
     }
-  } catch (error) {
-    console.error("Error submitting form:", error);
-    alert("There was an error submitting your data.");
-  } finally {
-    setLoading(false);  // Reset loading state
-  }
-};
+
+    setLoading(true);
+
+    const formData = new FormData();
+    formData.append("file", resumeFile);
+    formData.append("job_description", jobDescription);
+
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
+      const response = await axios.post(`${backendUrl}/ats/ats-details`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (response.data.success) {
+        setAtsData(response.data.data);
+        setPercentage(response.data.data.score || 0);
+        setSubmitted(true);
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("There was an error submitting your data.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleReset = () => {
     setSubmitted(false);
@@ -165,46 +167,55 @@ const handleSubmit = async (e) => {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Resume Upload */}
                   <div className="space-y-2">
-                    <label className="block text-white font-medium">Upload Resume</label>
+                    <label htmlFor="resume-upload" className="block text-white font-medium">
+                      Upload Resume
+                    </label>
                     <div className="flex items-center">
                       <input 
                         type="file" 
+                        id="resume-upload"
                         accept=".pdf,.doc,.docx" 
                         onChange={handleFileChange}
-                        className="hidden" 
-                        id="resume-upload" 
+                        className="block w-full text-sm text-gray-400
+                          file:mr-4 file:py-2 file:px-4
+                          file:rounded-full file:border-0
+                          file:text-sm file:font-medium
+                          file:bg-[#00b4d8] file:text-white
+                          hover:file:bg-[#00a0c0]
+                          cursor-pointer" 
                       />
-                      <label 
-                        htmlFor="resume-upload" 
-                        className="cursor-pointer flex-1 border-2 border-dashed border-gray-600 rounded-lg p-4 text-center hover:border-[#00b4d8] transition-colors"
-                      >
-                        {resumeFileName ? (
-                          <span className="text-[#00b4d8]">{resumeFileName}</span>
-                        ) : (
-                          <span className="text-gray-400">Click to upload PDF, DOC, or DOCX</span>
-                        )}
-                      </label>
                     </div>
+                    {resumeFileName && (
+                      <p className="mt-2 text-sm text-[#00b4d8]">{resumeFileName}</p>
+                    )}
                   </div>
 
                   {/* Job Description */}
                   <div className="space-y-2">
-                    <label className="block text-white font-medium">Job Description</label>
+                    <label htmlFor="job-description" className="block text-white font-medium">
+                      Job Description
+                    </label>
                     <textarea
+                      id="job-description"
                       value={jobDescription}
                       onChange={(e) => setJobDescription(e.target.value)}
-                      className="w-full h-48 bg-[#2b2b2b] text-white rounded-lg p-3 focus:ring-2 focus:ring-[#00b4d8] focus:outline-none"
+                      className="w-full min-h-[12rem] bg-[#2b2b2b] text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#00b4d8] focus:outline-none text-base"
                       placeholder="Paste the job description here..."
                     />
                   </div>
 
                   {/* Submit Button */}
-                  <Button 
-                    text="Analyze Resume" 
-                    onClick={handleSubmit}
-                    className="w-full py-3"
+                  <button 
+                    type="submit"
                     disabled={!jobDescription.trim() || !resumeFile}
-                  />
+                    className={`w-full py-3 rounded-lg font-medium transition-colors ${
+                      !jobDescription.trim() || !resumeFile
+                        ? "opacity-50 cursor-not-allowed bg-gray-700 text-white"
+                        : "bg-[#00b4d8] text-white hover:bg-[#00a0c0]"
+                    }`}
+                  >
+                    Analyze Resume
+                  </button>
                 </form>
               </motion.div>
             ) : (
@@ -263,7 +274,7 @@ const handleSubmit = async (e) => {
 
                       <div className="space-y-4 text-center">
                         <h2 className="text-xl sm:text-2xl font-semibold text-white">
-                          {percentage >= 70 ? 'Strong Match!' : 'Needs Optimization'}
+                          {atsData.ats_score >= 70 ? 'Strong Match!' : 'Needs Optimization'}
                         </h2>
                         <p className="text-gray-300 text-base max-w-md mx-auto">
                           {atsData.resume_summary}

@@ -104,7 +104,7 @@ export default function Dashboard() {
       {/* Hamburger button for mobile */}
       <button
         id="hamburger-button"
-        className="fixed top-4 left-4 z-40 md:hidden bg-[#131515] border-white text-white p-2 rounded shadow-lg"
+        className="fixed top-4 right-4 z-40 md:hidden bg-[#131515] border-white text-white p-2 rounded shadow-lg"
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         aria-label="Toggle menu"
       >
