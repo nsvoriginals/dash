@@ -53,9 +53,7 @@ export default function Dashboard() {
         return <ATSDash />;
       case "Resume Builder":
         return <ResumeBuilderDash/>;
-      case "Portfolio":
-        return <PortfolioDash/>
-    
+     
       case "Job Portal":
         return (
           <div className="h-full flex items-center justify-center text-white text-2xl">

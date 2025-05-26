@@ -5,7 +5,6 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, toggleSidebar
     "ATS Metrics",
     "Resume Builder",
     "Interview Questions Generator",
-    "Portfolio",
     "Job Portal",
     "Profile"
   ];

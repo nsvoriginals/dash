@@ -32,7 +32,7 @@ export default function PortfolioDash() {
 
   // Load data from localStorage on component mount
   useEffect(() => {
-    const savedData = localStorage.getItem("portfolioData");
+    const savedData = localStorage.getItem("resumeData");
     const publishStatus = localStorage.getItem("portfolioPublished");
     
     if (savedData) {

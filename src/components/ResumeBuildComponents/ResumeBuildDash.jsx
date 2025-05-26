@@ -4,6 +4,15 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function ResumeBuilderDash() {
   const [published, setPublished] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [publishing, setPublishing] = useState(false);
+  const [error, setError] = useState(null);
+  const [userId] = useState(1); // TODO: Replace with actual user ID from auth system
+  const [resumeId, setResumeId] = useState(null);
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const [htmlUrl, setHtmlUrl] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewHtml, setPreviewHtml] = useState(null);
+  const [pdfAvailable, setPdfAvailable] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -12,57 +21,192 @@ export default function ResumeBuilderDash() {
     bio: "",
     skills: "",
     experience: [
-      { company: "", position: "", duration: "", description: "" }
+      { 
+        company: "", 
+        position: "", 
+        duration: "", 
+        description: "" 
+      }
     ],
     education: [
-      { institution: "", degree: "", year: "", description: "" }
+      { 
+        institution: "", 
+        degree: "", 
+        year: "", 
+        description: "",
+        url: "",
+        area: "",
+        studyType: "",
+        startDate: "",
+        endDate: "",
+        score: "",
+        courses: []
+      }
     ],
     projects: [
-      { title: "", description: "", technologies: "", link: "" }
+      { 
+        title: "", 
+        description: "", 
+        technologies: "", 
+        link: "",
+        name: "",
+        startDate: "",
+        endDate: "",
+        highlights: [],
+        url: ""
+      }
     ],
     hobbies: ""
   });
 
-  // Load data from localStorage on component mount
+  // Fetch resume data from backend
   useEffect(() => {
-    const savedData = localStorage.getItem("resumeData");
-    const publishStatus = localStorage.getItem("resumePublished");
-    
-    if (savedData) {
-      setFormData(JSON.parse(savedData));
+    const fetchResumeData = async () => {
+      try {
+        setLoading(true);
+        // Get the latest resume for the user
+        const response = await fetch(`http://localhost:8000/api/resumes/?user_id=${userId}&latest=true`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          credentials: 'include',
+        });
+        
+        if (response.ok) {
+          const resume = await response.json();
+          if (resume) {
+            setResumeId(resume.id);
+            setHtmlUrl(resume.formats?.html || null);
+            setPreviewUrl(resume.preview_url || null);
+            setPdfUrl(resume.formats?.pdf || null);
+            setPdfAvailable(!!resume.formats?.pdf);
+            setPublished(true);
+
+            // Format the data for the form
+            const formattedData = {
+              name: resume.name || "",
+              email: resume.email || "",
+              phone: resume.phone || "",
+              location: resume.location || "",
+              bio: resume.bio || "",
+              skills: resume.skills || "",
+              experience: Array.isArray(resume.experience) && resume.experience.length > 0 
+                ? resume.experience 
+                : [{ company: "", position: "", duration: "", description: "" }],
+              education: Array.isArray(resume.education) && resume.education.length > 0 
+                ? resume.education 
+                : [{ institution: "", degree: "", year: "", description: "", url: "", area: "", studyType: "", startDate: "", endDate: "", score: "", courses: [] }],
+              projects: Array.isArray(resume.projects) && resume.projects.length > 0 
+                ? resume.projects 
+                : [{ title: "", description: "", technologies: "", link: "", name: "", startDate: "", endDate: "", highlights: [], url: "" }],
+              hobbies: resume.hobbies || ""
+            };
+
+            setFormData(formattedData);
+
+            // Fetch preview HTML if available
+            if (resume.preview_url) {
+              const previewResponse = await fetch(`http://localhost:8000${resume.preview_url}`, {
+                headers: {
+                  'Accept': 'text/html',
+                },
+                credentials: 'include',
+              });
+              if (previewResponse.ok) {
+                const html = await previewResponse.text();
+                setPreviewHtml(html);
+              }
+            }
+          }
+        } else if (response.status === 404) {
+          // If no resume found, fall back to localStorage
+          console.log("No resume found in backend, falling back to localStorage");
+        } else {
+          const errorData = await response.json();
+          throw new Error(errorData.detail || "Failed to fetch resume");
+        }
+      } catch (error) {
+        console.error("Error fetching resume data:", error);
+        setError(error.message || "Failed to load resume data. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResumeData();
+  }, [userId]);
+
+  // Load data from localStorage as fallback
+  useEffect(() => {
+    if (!loading && !published) {
+      const savedData = localStorage.getItem("resumeData");
+      const publishStatus = localStorage.getItem("resumePublished");
+      
+      if (savedData) {
+        try {
+          const parsedData = JSON.parse(savedData);
+          // Ensure all required fields are present with default values
+          setFormData({
+            name: parsedData.name || "",
+            email: parsedData.email || "",
+            phone: parsedData.phone || "",
+            location: parsedData.location || "",
+            bio: parsedData.bio || "",
+            skills: parsedData.skills || "",
+            experience: Array.isArray(parsedData.experience) && parsedData.experience.length > 0 
+              ? parsedData.experience 
+              : [{ company: "", position: "", duration: "", description: "" }],
+            education: Array.isArray(parsedData.education) && parsedData.education.length > 0 
+              ? parsedData.education 
+              : [{ institution: "", degree: "", year: "", description: "", url: "", area: "", studyType: "", startDate: "", endDate: "", score: "", courses: [] }],
+            projects: Array.isArray(parsedData.projects) && parsedData.projects.length > 0 
+              ? parsedData.projects 
+              : [{ title: "", description: "", technologies: "", link: "", name: "", startDate: "", endDate: "", highlights: [], url: "" }],
+            hobbies: parsedData.hobbies || ""
+          });
+        } catch (error) {
+          console.error("Error parsing saved data:", error);
+        }
+      }
+      
+      if (publishStatus === "true") {
+        setPublished(true);
+      }
     }
-    
-    if (publishStatus === "true") {
-      setPublished(true);
-    }
-    
-    // Simulate loading state
-    setTimeout(() => {
-      setLoading(false);
-    }, 500);
-  }, []);
+  }, [loading, published]);
 
   // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    setFormData(prevData => ({
+      ...prevData,
+      [name]: value || "" // Ensure empty string if value is null/undefined
+    }));
   };
 
   // Handle array field changes (experience, education, projects)
   const handleArrayChange = (e, index, arrayName) => {
     const { name, value } = e.target;
-    const newArray = [...formData[arrayName]];
-    newArray[index] = {
-      ...newArray[index],
-      [name]: value
-    };
-    
-    setFormData({
-      ...formData,
-      [arrayName]: newArray
+    setFormData(prevData => {
+      const currentArray = Array.isArray(prevData[arrayName]) ? prevData[arrayName] : [];
+      const newArray = [...currentArray];
+      
+      // Ensure the index exists
+      if (!newArray[index]) {
+        newArray[index] = {};
+      }
+      
+      newArray[index] = {
+        ...newArray[index],
+        [name]: value || "" // Ensure empty string if value is null/undefined
+      };
+      
+      return {
+        ...prevData,
+        [arrayName]: newArray
+      };
     });
   };
 
@@ -73,34 +217,278 @@ export default function ResumeBuilderDash() {
     if (arrayName === "experience") {
       newItem = { company: "", position: "", duration: "", description: "" };
     } else if (arrayName === "education") {
-      newItem = { institution: "", degree: "", year: "", description: "" };
+      newItem = { institution: "", degree: "", year: "", description: "", url: "", area: "", studyType: "", startDate: "", endDate: "", score: "", courses: [] };
     } else if (arrayName === "projects") {
-      newItem = { title: "", description: "", technologies: "", link: "" };
+      newItem = { title: "", description: "", technologies: "", link: "", name: "", startDate: "", endDate: "", highlights: [], url: "" };
     }
     
-    setFormData({
-      ...formData,
-      [arrayName]: [...formData[arrayName], newItem]
+    setFormData(prevData => {
+      const currentArray = Array.isArray(prevData[arrayName]) ? prevData[arrayName] : [];
+      return {
+        ...prevData,
+        [arrayName]: [...currentArray, newItem]
+      };
     });
   };
 
   // Remove item from arrays (experience, education, projects)
   const removeItem = (index, arrayName) => {
-    const newArray = [...formData[arrayName]];
-    newArray.splice(index, 1);
-    
-    setFormData({
-      ...formData,
-      [arrayName]: newArray
+    setFormData(prevData => {
+      const currentArray = Array.isArray(prevData[arrayName]) ? prevData[arrayName] : [];
+      const newArray = [...currentArray];
+      newArray.splice(index, 1);
+      
+      // Ensure at least one item remains
+      if (newArray.length === 0) {
+        if (arrayName === "experience") {
+          newArray.push({ company: "", position: "", duration: "", description: "" });
+        } else if (arrayName === "education") {
+          newArray.push({ institution: "", degree: "", year: "", description: "", url: "", area: "", studyType: "", startDate: "", endDate: "", score: "", courses: [] });
+        } else if (arrayName === "projects") {
+          newArray.push({ title: "", description: "", technologies: "", link: "", name: "", startDate: "", endDate: "", highlights: [], url: "" });
+        }
+      }
+      
+      return {
+        ...prevData,
+        [arrayName]: newArray
+      };
     });
   };
 
   // Handle publish action
-  const handlePublish = () => {
-    localStorage.setItem("resumeData", JSON.stringify(formData));
-    localStorage.setItem("resumePublished", "true");
-    setPublished(true);
+  const handlePublish = async () => {
+    setPublishing(true);
+    setError(null);
+    try {
+      // First save to localStorage
+      localStorage.setItem("resumeData", JSON.stringify(formData));
+      localStorage.setItem("resumePublished", "true");
+
+      // Format the data for the API
+      const resumeData = {
+        user_id: userId,
+        name: formData.name || "",
+        email: formData.email || "",
+        phone: formData.phone || "",
+        location: formData.location || "",
+        bio: formData.bio || "",
+        skills: typeof formData.skills === 'string' ? formData.skills : 
+               Array.isArray(formData.skills) ? formData.skills.join(', ') : 
+               safeSplit(formData.skills).join(', '),
+        experience: formData.experience.map(exp => ({
+          company: exp.company || '',
+          position: exp.position || '',
+          duration: exp.duration || '',
+          description: exp.description || ''
+        })),
+        education: formData.education.map(edu => ({
+          institution: edu.institution || '',
+          degree: edu.degree || '',
+          year: edu.year || '',
+          description: edu.description || '',
+          url: edu.url || '',
+          area: edu.area || '',
+          studyType: edu.studyType || '',
+          startDate: edu.startDate || '',
+          endDate: edu.endDate || '',
+          score: edu.score || '',
+          courses: Array.isArray(edu.courses) ? edu.courses : []
+        })),
+        projects: formData.projects.map(proj => ({
+          title: proj.title || '',
+          description: proj.description || '',
+          technologies: proj.technologies || '',
+          link: proj.link || '',
+          name: proj.name || '',
+          startDate: proj.startDate || '',
+          endDate: proj.endDate || '',
+          highlights: Array.isArray(proj.highlights) ? proj.highlights : [],
+          url: proj.url || ''
+        })),
+        hobbies: formData.hobbies || "",
+        template_name: "Professional"
+      };
+
+      // Send to backend API
+      const response = await fetch(`http://localhost:8000/api/resumes/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        credentials: 'include',
+        body: JSON.stringify(resumeData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Failed to create resume");
+      }
+
+      const data = await response.json();
+      setResumeId(data.id);
+      setHtmlUrl(data.formats?.html || null);
+      setPreviewUrl(data.preview_url || null);
+      setPdfUrl(data.formats?.pdf || null);
+      setPdfAvailable(!!data.formats?.pdf);
+      setPublished(true);
+
+      // Fetch preview HTML
+      if (data.preview_url) {
+        const previewResponse = await fetch(`http://localhost:8000${data.preview_url}`, {
+          headers: {
+            'Accept': 'text/html',
+          },
+          credentials: 'include',
+        });
+        if (previewResponse.ok) {
+          const html = await previewResponse.text();
+          setPreviewHtml(html);
+        }
+      }
+
+    } catch (error) {
+      console.error("Error publishing resume:", error);
+      setError(error.message || "Failed to publish resume. Please try again.");
+    } finally {
+      setPublishing(false);
+    }
   };
+
+  // Handle PDF download using browser's print functionality
+  const handleDownloadPDF = async () => {
+    if (!previewHtml) return;
+    
+    try {
+      setPublishing(true);
+      
+      // Create a new window with the HTML content
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        throw new Error("Please allow popups for this website");
+      }
+
+      // Add print-specific styles
+      const printStyles = `
+        <style>
+          @media print {
+            body {
+              margin: 0;
+              padding: 20px;
+              font-family: "Times New Roman", serif;
+            }
+            @page {
+              size: A4;
+              margin: 0;
+            }
+            .no-print {
+              display: none !important;
+            }
+            a {
+              text-decoration: none;
+              color: black;
+            }
+          }
+        </style>
+      `;
+
+      // Write the content to the new window
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>${formData.name}'s Resume</title>
+            ${printStyles}
+          </head>
+          <body>
+            ${previewHtml}
+            <div class="no-print" style="position: fixed; top: 10px; right: 10px;">
+              <button onclick="window.print()">Print / Save as PDF</button>
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+
+      // Wait for content to load
+      printWindow.onload = () => {
+        // Automatically trigger print dialog
+        printWindow.print();
+        // Close the window after printing
+        printWindow.onafterprint = () => {
+          printWindow.close();
+          setPublishing(false);
+        };
+      };
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      setError(error.message || "Failed to generate PDF. Please try again.");
+      setPublishing(false);
+    }
+  };
+
+  // Handle HTML download
+  const handleDownloadHTML = async () => {
+    if (!htmlUrl) return;
+    
+    try {
+      setPublishing(true);
+      const htmlResponse = await fetch(`http://localhost:8000${htmlUrl}`);
+      
+      if (!htmlResponse.ok) {
+        throw new Error("Failed to download HTML");
+      }
+
+      const htmlBlob = await htmlResponse.blob();
+      const url = window.URL.createObjectURL(htmlBlob);
+      
+      // Create and trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `resume_${resumeId}.html`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading HTML:", error);
+      setError(error.message || "Failed to download HTML. Please try again.");
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  // Handle HTML preview
+  const handleViewHTML = async () => {
+    if (!previewUrl) return;
+    
+    try {
+      setPublishing(true);
+      const htmlResponse = await fetch(`http://localhost:8000${previewUrl}`);
+      
+      if (!htmlResponse.ok) {
+        throw new Error("Failed to load HTML preview");
+      }
+
+      const html = await htmlResponse.text();
+      setPreviewHtml(html);
+    } catch (error) {
+      console.error("Error loading HTML preview:", error);
+      setError(error.message || "Failed to load HTML preview. Please try again.");
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  // Cleanup URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      if (pdfUrl) {
+        window.URL.revokeObjectURL(pdfUrl);
+      }
+    };
+  }, [pdfUrl]);
 
   // Handle unpublish action
   const handleUnpublish = () => {
@@ -129,11 +517,17 @@ export default function ResumeBuilderDash() {
 
   // Validation for publish button
   const isFormValid = () => {
-    return (
-      formData.name.trim() !== "" && 
-      formData.email.trim() !== "" &&
-      formData.skills.trim() !== ""
-    );
+    const name = typeof formData.name === 'string' ? formData.name.trim() : '';
+    const email = typeof formData.email === 'string' ? formData.email.trim() : '';
+    const skills = typeof formData.skills === 'string' ? formData.skills.trim() : '';
+    
+    return name !== '' && email !== '' && skills !== '';
+  };
+
+  // Helper function to safely split strings
+  const safeSplit = (str, delimiter = ',') => {
+    if (!str || typeof str !== 'string') return [];
+    return str.split(delimiter).filter(item => item.trim());
   };
 
   // Loading state
@@ -411,6 +805,82 @@ export default function ResumeBuilderDash() {
                     ))}
                   </div>
                   
+                  {/* Projects Section */}
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center border-b border-gray-700 pb-2">
+                      <h2 className="text-xl font-semibold text-white">Projects</h2>
+                      <Button 
+                        text="Add Project" 
+                        onClick={() => addItem("projects")}
+                        variant="secondary"
+                        className="text-sm px-3 py-1"
+                      />
+                    </div>
+                    
+                    {formData.projects.map((project, index) => (
+                      <div key={index} className="bg-[#242424] p-4 rounded-lg space-y-4">
+                        <div className="flex justify-between items-center">
+                          <h3 className="text-white font-medium">Project #{index + 1}</h3>
+                          {formData.projects.length > 1 && (
+                            <button
+                              onClick={() => removeItem(index, "projects")}
+                              className="text-red-400 hover:text-red-300 text-sm"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <label className="block text-white font-medium">Project Title</label>
+                          <input
+                            type="text"
+                            name="title"
+                            value={project.title}
+                            onChange={(e) => handleArrayChange(e, index, "projects")}
+                            className="w-full bg-[#2b2b2b] text-white rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                            placeholder="Project Name"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <label className="block text-white font-medium">Description</label>
+                          <textarea
+                            name="description"
+                            value={project.description}
+                            onChange={(e) => handleArrayChange(e, index, "projects")}
+                            className="w-full h-24 bg-[#2b2b2b] text-white rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                            placeholder="Describe your project..."
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <label className="block text-white font-medium">Technologies Used</label>
+                          <input
+                            type="text"
+                            name="technologies"
+                            value={project.technologies}
+                            onChange={(e) => handleArrayChange(e, index, "projects")}
+                            className="w-full bg-[#2b2b2b] text-white rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                            placeholder="React, Node.js, MongoDB, etc."
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <label className="block text-white font-medium">Project Link</label>
+                          <input
+                            type="url"
+                            name="link"
+                            value={project.link}
+                            onChange={(e) => handleArrayChange(e, index, "projects")}
+                            className="w-full bg-[#2b2b2b] text-white rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                            placeholder="https://github.com/username/project"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
                   {/* Hobbies Section */}
                   <div className="space-y-4">
                     <h2 className="text-xl font-semibold text-white border-b border-gray-700 pb-2">Hobbies & Interests</h2>
@@ -429,14 +899,19 @@ export default function ResumeBuilderDash() {
                   
                  <div className="pt-6">
                                      <Button 
-                                       text="Publish Portfolio" 
+                                       text={publishing ? "Building Resume..." : "Build Resume"}
                                        onClick={handlePublish}
                                        className="w-full py-3"
-                                       disabled={!isFormValid()}
+                                       disabled={!isFormValid() || publishing}
                                      />
                                      {!isFormValid() && (
                                        <p className="text-red-400 text-sm mt-2 text-center">
                                          Please fill all required fields marked with *
+                                       </p>
+                                     )}
+                                     {error && (
+                                       <p className="text-red-400 text-sm mt-2 text-center">
+                                         {error}
                                        </p>
                                      )}
                                    </div>
@@ -445,276 +920,285 @@ export default function ResumeBuilderDash() {
                              ) : (
                                // PUBLISHED PORTFOLIO VIEW
                                <>
-                                 <div className="flex justify-between items-center mb-8">
+                                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
                                    <Button
                                      text="Modify Portfolio"
                                      onClick={handleUnpublish}
                                      variant="secondary"
+                                     className="w-full sm:w-auto"
                                    />
                                    <motion.h2 
                                      initial={{ opacity: 0, scale: 0.8 }}
                                      animate={{ opacity: 1, scale: 1 }}
                                      transition={{ delay: 0.3 }}
-                                     className="text-2xl sm:text-3xl font-bold text-white"
+                                     className="text-xl sm:text-2xl md:text-3xl font-bold text-white text-center"
                                    >
                                      {formData.name}'s Portfolio
                                    </motion.h2>
-                                   <div className="w-24" />
+                                   <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
+                                     <Button
+                                       text={publishing ? "Generating PDF..." : "Download as PDF"}
+                                       onClick={handleDownloadPDF}
+                                       disabled={publishing || !previewHtml}
+                                       className="w-full sm:w-40"
+                                     />
+                                     <Button
+                                       text={publishing ? "Loading Preview..." : "View HTML"}
+                                       onClick={handleViewHTML}
+                                       disabled={publishing || !previewUrl}
+                                       variant="secondary"
+                                       className="w-full sm:w-40"
+                                     />
+                                     <Button
+                                       text={publishing ? "Downloading..." : "Download HTML"}
+                                       onClick={handleDownloadHTML}
+                                       disabled={publishing || !htmlUrl}
+                                       variant="secondary"
+                                       className="w-full sm:w-40"
+                                     />
+                                   </div>
                                  </div>
                  
-                                 {/* Main Content Grid */}
-                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                   {/* Left Column - Personal Info */}
-                                   <div className="lg:col-span-1">
-                                     <motion.div
-                                       initial={{ opacity: 0, y: 50 }}
-                                       animate={{ opacity: 1, y: 0 }}
-                                       className="bg-[#1e1e1e] rounded-xl p-6 h-full"
-                                     >
-                                       <div className="mx-auto w-48 h-48 mb-6 bg-indigo-600 rounded-full flex items-center justify-center">
-                                         <span className="text-4xl font-bold text-white">
-                                           {formData.name.split(' ').map(name => name[0]).join('')}
-                                         </span>
-                                       </div>
-                 
-                                       <div className="space-y-4 text-center">
-                                         <h2 className="text-xl sm:text-2xl font-semibold text-white">
-                                           {formData.name}
-                                         </h2>
-                                         <p className="text-gray-300 text-base">
-                                           {formData.bio || "No bio provided"}
-                                         </p>
-                                         
-                                         <div className="pt-4 border-t border-gray-700">
-                                           <div className="flex flex-col space-y-2">
-                                             {formData.email && (
-                                               <p className="text-gray-300">
-                                                 <span className="text-indigo-400">Email:</span> {formData.email}
-                                               </p>
-                                             )}
-                                             {formData.phone && (
-                                               <p className="text-gray-300">
-                                                 <span className="text-indigo-400">Phone:</span> {formData.phone}
-                                               </p>
-                                             )}
-                                             {formData.location && (
-                                               <p className="text-gray-300">
-                                                 <span className="text-indigo-400">Location:</span> {formData.location}
-                                               </p>
-                                             )}
-                                           </div>
-                                         </div>
-                                         
-                                         {/* Social Links */}
-                                         <div className="pt-4 border-t border-gray-700">
-                                           <h3 className="text-lg font-medium text-white mb-3">Connect With Me</h3>
-                                           <div className="flex justify-center space-x-4">
-                                            {formData.socialLinks &&
-                   Object.entries(formData.socialLinks).map(([platform, url]) => (
-                     url && (
-                       <div key={platform} className="text-indigo-400 hover:text-indigo-300">
-                         {platform.charAt(0).toUpperCase() + platform.slice(1)}
-                       </div>
-                     )
-                 ))}
-                                           </div>
-                                         </div>
-                                       </div>
-                                     </motion.div>
-                                   </div>
-                 
-                                   {/* Right Column - Skills, Experience, etc. */}
-                                   <div className="lg:col-span-2 space-y-6">
-                                     {/* Skills Card */}
-                                     <motion.div
-                                       initial={{ opacity: 0, y: 50 }}
-                                       animate={{ opacity: 1, y: 0 }}
-                                       transition={{ delay: 0.2 }}
-                                       className="bg-[#1e1e1e] rounded-xl shadow-lg p-6"
-                                     >
-                                       <h2 className="text-2xl font-bold text-white mb-6">
-                                         Skills & Expertise
-                                       </h2>
-                                       <div className="flex flex-wrap gap-2">
-                                         {formData.skills.split(',').map((skill, idx) => (
-                                           skill.trim() && (
-                                             <motion.div
-                                               key={idx}
-                                               initial={{ scale: 0.8, opacity: 0 }}
-                                               animate={{ scale: 1, opacity: 1 }}
-                                               transition={{ delay: 0.3 + (idx * 0.05) }}
-                                               className={`px-3 py-1.5 rounded-full text-sm ${
-                                                 idx % 3 === 0 ? 'bg-indigo-600 text-white' :
-                                                 idx % 3 === 1 ? 'bg-pink-600 text-white' :
-                                                 'bg-teal-600 text-white'
-                                               } font-medium`}
-                                             >
-                                               {skill.trim()}
-                                             </motion.div>
-                                           )
-                                         ))}
-                                       </div>
-                                     </motion.div>
-                 
-                                     {/* Experience Card */}
-                                    {Array.isArray(formData?.experience) && formData.experience?.some(exp => exp.company || exp.position) && (
-                   <motion.div
-                     initial={{ opacity: 0, y: 50 }}
-                     animate={{ opacity: 1, y: 0 }}
-                     transition={{ delay: 0.4 }}
-                     className="bg-[#1e1e1e] rounded-xl shadow-lg p-6"
-                   >
-                     <h2 className="text-2xl font-bold text-white mb-6">
-                       Professional Experience
-                     </h2>
-                     <div className="space-y-6">
-                       {formData.experience.map((exp, idx) =>
-                         (exp.company || exp.position) ? (
-                           <motion.div
-                             key={idx}
-                             initial={{ x: -20, opacity: 0 }}
-                             animate={{ x: 0, opacity: 1 }}
-                             transition={{ delay: 0.5 + idx * 0.1 }}
-                             className="border-l-2 border-indigo-600 pl-4 ml-2"
-                           >
-                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
-                               <h3 className="text-lg font-semibold text-white">
-                                 {exp.position || "Position"}
-                               </h3>
-                               <span className="text-indigo-400 text-sm">
-                                 {exp.duration || "Duration"}
-                               </span>
-                             </div>
-                             <p className="text-gray-300 mb-1">
-                               {exp.company || "Company"}
-                             </p>
-                             <p className="text-gray-400 text-sm">
-                               {exp.description || "No description provided."}
-                             </p>
-                           </motion.div>
-                         ) : null
-                       )}
-                     </div>
-                   </motion.div>
-                 )}
-                 
-                 
-                 
-                 
-                                     {/* Education Card */}
-                                     {formData.education?.some(edu => edu.institution || edu.degree) && (
+                                 {previewHtml ? (
+                                   <div 
+                                     className="bg-white rounded-lg p-6 mt-6"
+                                     dangerouslySetInnerHTML={{ __html: previewHtml }}
+                                   />
+                                 ) : (
+                                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                                     {/* Left Column - Personal Info */}
+                                     <div className="lg:col-span-1">
                                        <motion.div
                                          initial={{ opacity: 0, y: 50 }}
                                          animate={{ opacity: 1, y: 0 }}
-                                         transition={{ delay: 0.6 }}
-                                         className="bg-[#1e1e1e] rounded-xl shadow-lg p-6"
+                                         className="bg-[#1e1e1e] rounded-xl p-4 sm:p-6 h-full"
                                        >
-                                         <h2 className="text-2xl font-bold text-white mb-6">
-                                           Education
+                                         <div className="mx-auto w-32 h-32 sm:w-48 sm:h-48 mb-4 sm:mb-6 bg-indigo-600 rounded-full flex items-center justify-center">
+                                           <span className="text-3xl sm:text-4xl font-bold text-white">
+                                             {formData.name.split(' ').map(name => name[0]).join('')}
+                                           </span>
+                                         </div>
+
+                                         <div className="space-y-4 text-center">
+                                           <h2 className="text-xl sm:text-2xl font-semibold text-white">
+                                             {formData.name}
+                                           </h2>
+                                           <p className="text-gray-300 text-base">
+                                             {formData.bio || "No bio provided"}
+                                           </p>
+                                           
+                                           <div className="pt-4 border-t border-gray-700">
+                                             <div className="flex flex-col space-y-2">
+                                               {formData.email && (
+                                                 <p className="text-gray-300">
+                                                   <span className="text-indigo-400">Email:</span> {formData.email}
+                                                 </p>
+                                               )}
+                                               {formData.phone && (
+                                                 <p className="text-gray-300">
+                                                   <span className="text-indigo-400">Phone:</span> {formData.phone}
+                                                 </p>
+                                               )}
+                                               {formData.location && (
+                                                 <p className="text-gray-300">
+                                                   <span className="text-indigo-400">Location:</span> {formData.location}
+                                                 </p>
+                                               )}
+                                             </div>
+                                           </div>
+                                         </div>
+                                       </motion.div>
+                                     </div>
+
+                                     {/* Right Column - Skills, Experience, etc. */}
+                                     <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+                                       {/* Skills Card */}
+                                       <motion.div
+                                         initial={{ opacity: 0, y: 50 }}
+                                         animate={{ opacity: 1, y: 0 }}
+                                         transition={{ delay: 0.2 }}
+                                         className="bg-[#1e1e1e] rounded-xl shadow-lg p-4 sm:p-6"
+                                       >
+                                         <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">
+                                           Skills & Expertise
                                          </h2>
-                                         <div className="space-y-6">
-                                           {formData.education.map((edu, idx) => (
-                                             (edu.institution || edu.degree) && (
-                                               <motion.div 
+                                         <div className="flex flex-wrap gap-2">
+                                           {safeSplit(formData.skills).map((skill, idx) => (
+                                             skill.trim() && (
+                                               <motion.div
                                                  key={idx}
-                                                 initial={{ x: -20, opacity: 0 }}
-                                                 animate={{ x: 0, opacity: 1 }}
-                                                 transition={{ delay: 0.7 + (idx * 0.1) }}
-                                                 className="border-l-2 border-pink-600 pl-4 ml-2"
+                                                 initial={{ scale: 0.8, opacity: 0 }}
+                                                 animate={{ scale: 1, opacity: 1 }}
+                                                 transition={{ delay: 0.3 + (idx * 0.05) }}
+                                                 className={`px-3 py-1.5 rounded-full text-sm ${
+                                                   idx % 3 === 0 ? 'bg-indigo-600 text-white' :
+                                                   idx % 3 === 1 ? 'bg-pink-600 text-white' :
+                                                   'bg-teal-600 text-white'
+                                                 } font-medium`}
                                                >
-                                                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
-                                                   <h3 className="text-lg font-semibold text-white">{edu.degree || "Degree"}</h3>
-                                                   <span className="text-pink-400 text-sm">{edu.year || "Year"}</span>
-                                                 </div>
-                                                 <p className="text-gray-300 mb-1">{edu.institution || "Institution"}</p>
-                                                 <p className="text-gray-400 text-sm">{edu.description || "No description provided"}</p>
+                                                 {skill.trim()}
                                                </motion.div>
                                              )
                                            ))}
                                          </div>
                                        </motion.div>
-                                     )}
-                 
-                                     {/* Projects Card */}
-                                     {Array.isArray(formData?.projects) && formData.projects.some(proj => proj.title || proj.description) && (
-                   <motion.div
-                     initial={{ opacity: 0, y: 50 }}
-                     animate={{ opacity: 1, y: 0 }}
-                     transition={{ delay: 0.8 }}
-                     className="bg-[#1e1e1e] rounded-xl shadow-lg p-6"
-                   >
-                     <h2 className="text-2xl font-bold text-white mb-6">
-                       Projects
-                     </h2>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                       {formData.projects.map((proj, idx) => (
-                         (proj.title || proj.description) && (
-                           <motion.div
-                             key={idx}
-                             initial={{ scale: 0.9, opacity: 0 }}
-                             animate={{ scale: 1, opacity: 1 }}
-                             transition={{ delay: 0.9 + (idx * 0.1) }}
-                             className="bg-[#242424] p-4 rounded-lg"
-                           >
-                             <h3 className="text-lg font-semibold text-white mb-2">{proj.title || "Project Title"}</h3>
-                             {proj.technologies && (
-                               <div className="flex flex-wrap gap-1 mb-3">
-                                 {proj.technologies.split(',').map((tech, techIdx) => (
-                                   tech.trim() && (
-                                     <span 
-                                       key={techIdx} 
-                                       className="bg-teal-600 bg-opacity-30 text-teal-300 text-xs px-2 py-1 rounded"
-                                     >
-                                       {tech.trim()}
-                                     </span>
-                                   )
-                                 ))}
-                               </div>
-                             )}
-                             <p className="text-gray-400 text-sm mb-3">{proj.description || "No description provided"}</p>
-                             {proj.link && (
-                               <a href={proj.link} className="text-indigo-400 text-sm hover:underline">
-                                 View Project →
-                               </a>
-                             )}
-                           </motion.div>
-                         )
-                       ))}
-                     </div>
-                   </motion.div>
-                 )}
-                 
-                 
-                                     {/* Hobbies Card */}
-                                     {formData.hobbies && (
-                                       <motion.div
-                                         initial={{ opacity: 0, y: 50 }}
-                                         animate={{ opacity: 1, y: 0 }}
-                                         transition={{ delay: 1.0 }}
-                                         className="bg-indigo-600 rounded-xl p-6 text-white"
-                                       >
-                                         <h2 className="text-2xl font-bold mb-4">
-                                           Hobbies & Interests
-                                         </h2>
-                                         <div className="flex flex-wrap gap-2">
-                                           {formData.hobbies.split(',').map((hobby, idx) => (
-                                             hobby.trim() && (
-                                               <motion.span
-                                                 key={idx}
-                                                 initial={{ scale: 0.8, opacity: 0 }}
-                                                 animate={{ scale: 1, opacity: 1 }}
-                                                 transition={{ delay: 1.1 + (idx * 0.05) }}
-                                                 className="bg-white bg-opacity-20 px-3 py-1.5 rounded-full text-sm"
-                                               >
-                                                 {hobby.trim()}
-                                               </motion.span>
-                                             )
-                                           ))}
-                                         </div>
-                                       </motion.div>
-                                     )}
+
+                                       {/* Experience Card */}
+                                       {Array.isArray(formData?.experience) && formData.experience?.some(exp => exp.company || exp.position) && (
+                                         <motion.div
+                                           initial={{ opacity: 0, y: 50 }}
+                                           animate={{ opacity: 1, y: 0 }}
+                                           transition={{ delay: 0.4 }}
+                                           className="bg-[#1e1e1e] rounded-xl shadow-lg p-4 sm:p-6"
+                                         >
+                                           <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">
+                                             Professional Experience
+                                           </h2>
+                                           <div className="space-y-4 sm:space-y-6">
+                                             {formData.experience.map((exp, idx) =>
+                                               (exp.company || exp.position) ? (
+                                                 <motion.div
+                                                   key={idx}
+                                                   initial={{ x: -20, opacity: 0 }}
+                                                   animate={{ x: 0, opacity: 1 }}
+                                                   transition={{ delay: 0.5 + idx * 0.1 }}
+                                                   className="border-l-2 border-indigo-600 pl-3 sm:pl-4 ml-2"
+                                                 >
+                                                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
+                                                     <h3 className="text-base sm:text-lg font-semibold text-white">
+                                                       {exp.position || "Position"}
+                                                     </h3>
+                                                     <span className="text-indigo-400 text-sm mt-1 sm:mt-0">
+                                                       {exp.duration || "Duration"}
+                                                     </span>
+                                                   </div>
+                                                   <p className="text-gray-300 mb-1">
+                                                     {exp.company || "Company"}
+                                                   </p>
+                                                   <p className="text-gray-400 text-sm">
+                                                     {exp.description || "No description provided."}
+                                                   </p>
+                                                 </motion.div>
+                                               ) : null
+                                             )}
+                                           </div>
+                                         </motion.div>
+                                       )}
+
+                                       {/* Education Card */}
+                                       {formData.education?.some(edu => edu.institution || edu.degree) && (
+                                         <motion.div
+                                           initial={{ opacity: 0, y: 50 }}
+                                           animate={{ opacity: 1, y: 0 }}
+                                           transition={{ delay: 0.6 }}
+                                           className="bg-[#1e1e1e] rounded-xl shadow-lg p-4 sm:p-6"
+                                         >
+                                           <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">
+                                             Education
+                                           </h2>
+                                           <div className="space-y-4 sm:space-y-6">
+                                             {formData.education.map((edu, idx) => (
+                                               (edu.institution || edu.degree) && (
+                                                 <motion.div 
+                                                   key={idx}
+                                                   initial={{ x: -20, opacity: 0 }}
+                                                   animate={{ x: 0, opacity: 1 }}
+                                                   transition={{ delay: 0.7 + (idx * 0.1) }}
+                                                   className="border-l-2 border-pink-600 pl-3 sm:pl-4 ml-2"
+                                                 >
+                                                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
+                                                     <h3 className="text-base sm:text-lg font-semibold text-white">{edu.degree || "Degree"}</h3>
+                                                     <span className="text-pink-400 text-sm mt-1 sm:mt-0">{edu.year || "Year"}</span>
+                                                   </div>
+                                                   <p className="text-gray-300 mb-1">{edu.institution || "Institution"}</p>
+                                                   <p className="text-gray-400 text-sm">{edu.description || "No description provided"}</p>
+                                                 </motion.div>
+                                               )
+                                             ))}
+                                           </div>
+                                         </motion.div>
+                                       )}
+
+                                       {/* Projects Card */}
+                                       {formData.projects?.some(project => project.title || project.description) && (
+                                         <motion.div
+                                           initial={{ opacity: 0, y: 50 }}
+                                           animate={{ opacity: 1, y: 0 }}
+                                           transition={{ delay: 0.7 }}
+                                           className="bg-[#1e1e1e] rounded-xl shadow-lg p-4 sm:p-6"
+                                         >
+                                           <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">
+                                             Projects
+                                           </h2>
+                                           <div className="space-y-4 sm:space-y-6">
+                                             {formData.projects.map((project, idx) =>
+                                               (project.title || project.description) ? (
+                                                 <motion.div
+                                                   key={idx}
+                                                   initial={{ x: -20, opacity: 0 }}
+                                                   animate={{ x: 0, opacity: 1 }}
+                                                   transition={{ delay: 0.8 + idx * 0.1 }}
+                                                   className="border-l-2 border-indigo-600 pl-3 sm:pl-4 ml-2"
+                                                 >
+                                                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
+                                                     <h3 className="text-base sm:text-lg font-semibold text-white">
+                                                       {project.title || "Project Title"}
+                                                     </h3>
+                                                     {project.link && (
+                                                       <a
+                                                         href={project.link}
+                                                         target="_blank"
+                                                         rel="noopener noreferrer"
+                                                         className="text-indigo-400 text-sm hover:text-indigo-300 mt-1 sm:mt-0"
+                                                       >
+                                                         View Project →
+                                                       </a>
+                                                     )}
+                                                   </div>
+                                                   <p className="text-gray-400 text-sm mb-2">
+                                                     {project.technologies || "Technologies used"}
+                                                   </p>
+                                                   <p className="text-gray-300">
+                                                     {project.description || "No description provided."}
+                                                   </p>
+                                                 </motion.div>
+                                               ) : null
+                                             )}
+                                           </div>
+                                         </motion.div>
+                                       )}
+
+                                       {/* Hobbies Card */}
+                                       {formData.hobbies && (
+                                         <motion.div
+                                           initial={{ opacity: 0, y: 50 }}
+                                           animate={{ opacity: 1, y: 0 }}
+                                           transition={{ delay: 1.0 }}
+                                           className="bg-indigo-600 rounded-xl p-4 sm:p-6 text-white"
+                                         >
+                                           <h2 className="text-xl sm:text-2xl font-bold mb-4">
+                                             Hobbies & Interests
+                                           </h2>
+                                           <div className="flex flex-wrap gap-2">
+                                             {formData.hobbies.split(',').map((hobby, idx) => (
+                                               hobby.trim() && (
+                                                 <motion.span
+                                                   key={idx}
+                                                   initial={{ scale: 0.8, opacity: 0 }}
+                                                   animate={{ scale: 1, opacity: 1 }}
+                                                   transition={{ delay: 1.1 + (idx * 0.05) }}
+                                                   className="bg-white bg-opacity-20 px-3 py-1.5 rounded-full text-sm"
+                                                 >
+                                                   {hobby.trim()}
+                                                 </motion.span>
+                                               )
+                                             ))}
+                                           </div>
+                                         </motion.div>
+                                       )}
+                                     </div>
                                    </div>
-                                 </div>
+                                 )}
                                </>
                              )}
                            </div>
