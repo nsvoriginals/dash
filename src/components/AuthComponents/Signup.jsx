@@ -64,7 +64,7 @@ export default function SignUp() {
       setLoading(true);
       
       try {
-        const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/register`, {
+        const response = await axios.post(`http://localhost:8000/auth/register`, {
           username: formData.username,
           email: formData.email,
           password: formData.password

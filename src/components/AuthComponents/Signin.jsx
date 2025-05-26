@@ -47,7 +47,7 @@ export default function SignIn() {
       setLoading(true);
       
       try {
-        const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/login`, formData);
+        const response = await axios.post(`http://localhost:8000/auth/login`, formData);
         const { access_token, username } = response.data;
         
         // Use the auth context to handle login

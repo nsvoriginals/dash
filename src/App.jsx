@@ -13,7 +13,6 @@ function AppContent() {
 
   return (
     <div className='m-0 p-0 w-screen min-h-screen font-Tensor bg-[#1A1A1A]'>
-      {isLandingPage && <Sidebar />}
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/signin" element={<SignIn />} />
@@ -21,9 +20,7 @@ function AppContent() {
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
+            <Dashboard />
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />
