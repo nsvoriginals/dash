@@ -5,6 +5,7 @@ import InterviewQuestionsGenerator from "./components/InterviewGenComponents/Int
 import ProfileDash from "./components/ProfileComponents/ProfileDash";
 import PortfolioDash from "./components/PortfolioComponents/PortfolioDash";
 import ResumeBuilderDash from "./components/ResumeBuildComponents/ResumeBuildDash";
+import JobPortalDash from "./components/JobPortalComponents/JobPortalDash";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("ATS Metrics");
@@ -55,11 +56,7 @@ export default function Dashboard() {
         return <ResumeBuilderDash/>;
      
       case "Job Portal":
-        return (
-          <div className="h-full flex items-center justify-center text-white text-2xl">
-            Job Portal Component
-          </div>
-        );
+        return <JobPortalDash/>;
       case "Profile":
         return <ProfileDash />;
       default:

@@ -103,7 +103,7 @@ export default function ATSDash() {
     formData.append("job_description", jobDescription);
 
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
+      const backendUrl =  "http://localhost:8000";
       const response = await axios.post(`${backendUrl}/ats/ats-details`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
