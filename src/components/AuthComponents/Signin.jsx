@@ -1,8 +1,13 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
 
 export default function SignIn() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -10,20 +15,12 @@ export default function SignIn() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       [name]: value
-    });
-    
-    // Clear error when user types
-    if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: ""
-      });
-    }
+    }));
   };
 
   const validate = () => {
@@ -50,12 +47,15 @@ export default function SignIn() {
       setLoading(true);
       
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        const response = await axios.post(`http://localhost:8000/auth/login`, formData);
+        const { access_token, username } = response.data;
         
-        // Success! In a real app, you would redirect to dashboard here
-        console.log("Login successful", formData);
-        // navigate("/dashboard");
+        // Use the auth context to handle login
+        login(access_token, username);
+        
+        // Redirect to the page they tried to visit or dashboard
+        const from = location.state?.from?.pathname || "/dashboard";
+        navigate(from, { replace: true });
       } catch (error) {
         console.error("Login error:", error);
         setErrors({ form: "Invalid email or password. Please try again." });
@@ -83,24 +83,6 @@ export default function SignIn() {
     );
   };
 
-  // Input field component
-  const InputField = ({ label, type, name, value, onChange, error }) => (
-    <div className="space-y-1">
-      <label htmlFor={name} className="block text-white font-medium">
-        {label}
-      </label>
-      <input
-        type={type}
-        id={name}
-        name={name}
-        value={value}
-        onChange={onChange}
-        className="w-full bg-[#2b2b2b] text-white rounded-lg p-3 focus:ring-2 focus:ring-[#00b4d8] focus:outline-none border border-gray-700"
-      />
-      {error && <p className="text-red-400 text-sm mt-1">{error}</p>}
-    </div>
-  );
-
   return (
     <main className="flex-1 bg-[#131515] min-h-screen flex items-center justify-center p-4">
       <motion.div
@@ -121,23 +103,37 @@ export default function SignIn() {
         )}
         
         <form onSubmit={handleSubmit} className="space-y-5">
-          <InputField
-            label="Email"
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            error={errors.email}
-          />
+          <div className="space-y-1">
+            <label htmlFor="email" className="block text-white font-medium">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              className="w-full bg-[#2b2b2b] text-white rounded-lg px-4 py-3 md:p-3 focus:ring-2 focus:ring-[#00b4d8] focus:outline-none border border-gray-700 text-base"
+              placeholder="Enter your email"
+            />
+            {errors.email && <p className="text-red-400 text-sm mt-1">{errors.email}</p>}
+          </div>
           
-          <InputField
-            label="Password"
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            error={errors.password}
-          />
+          <div className="space-y-1">
+            <label htmlFor="password" className="block text-white font-medium">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              className="w-full bg-[#2b2b2b] text-white rounded-lg px-4 py-3 md:p-3 focus:ring-2 focus:ring-[#00b4d8] focus:outline-none border border-gray-700 text-base"
+              placeholder="Enter your password"
+            />
+            {errors.password && <p className="text-red-400 text-sm mt-1">{errors.password}</p>}
+          </div>
           
           <div className="flex justify-end">
             <Link to="/forgot-password" className="text-sm text-[#00b4d8] hover:text-white">

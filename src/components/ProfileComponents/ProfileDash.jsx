@@ -2,10 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { useAtom } from "jotai";
-
 import resumeAtom from "../../store/Resume";
-
-// Import your atom
 
 const Button = ({ text, onClick, className = '', disabled = false }) => {
   const baseStyles = "px-4 py-2 rounded-lg font-medium transition-colors";
@@ -36,23 +33,58 @@ export default function ProfileDashboard() {
 
   // Load from localStorage on component mount
   useEffect(() => {
-    const savedData = localStorage.getItem('resumeData');
-    if (savedData) {
+    const loadResumeData = () => {
       try {
-        const parsedData = JSON.parse(savedData);
-        setResumeData(parsedData);
+        // Try to load from localStorage first
+        const savedData = localStorage.getItem('resumeData');
+        if (savedData) {
+          const parsedData = JSON.parse(savedData);
+          setResumeData(parsedData);
+          setResumeDetails("Resume loaded from local storage");
+          setUploadSuccess(true);
+          
+          // If we have basic info, update the name
+          if (parsedData.basics?.name) {
+            setName(parsedData.basics.name);
+          }
+        }
+
+        // Then try to fetch from backend
+        fetchResumeFromBackend();
       } catch (error) {
-        console.error('Failed to parse resume data from localStorage', error);
+        console.error('Failed to load resume data:', error);
+        setUploadError("Failed to load resume data");
       }
-    }
+    };
+
+    loadResumeData();
   }, [setResumeData]);
 
-  // Save to localStorage whenever resumeData changes
-  useEffect(() => {
-    if (resumeData) {
-      localStorage.setItem('resumeData', JSON.stringify(resumeData));
+  // Fetch resume from backend
+  const fetchResumeFromBackend = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/resumes/latest', {
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setResumeData(data);
+        setResumeDetails("Resume loaded from server");
+        setUploadSuccess(true);
+        
+        // Update name if available
+        if (data.basics?.name) {
+          setName(data.basics.name);
+        }
+
+        // Save to localStorage
+        localStorage.setItem('resumeData', JSON.stringify(data));
+      }
+    } catch (error) {
+      console.error('Failed to fetch resume from backend:', error);
     }
-  }, [resumeData]);
+  };
 
   const handleResumeChange = (e) => {
     if (e.target.files[0]) {
@@ -77,7 +109,7 @@ export default function ProfileDashboard() {
       formData.append("file", resumeFile);
 
       const response = await axios.post(
-        "http://localhost:8080/resume/upload", 
+        "http://localhost:8000/resume/upload", 
         formData, 
         {
           headers: {
@@ -89,6 +121,8 @@ export default function ProfileDashboard() {
       // Update the Jotai atom with the response data
       if (response.data) {
         setResumeData(response.data);
+        // Save to localStorage
+        localStorage.setItem('resumeData', JSON.stringify(response.data));
       }
 
       setResumeDetails(`Uploaded: ${resumeFile.name} (Success!)`);
@@ -101,6 +135,22 @@ export default function ProfileDashboard() {
       setResumeDetails("Upload failed: " + resumeFile.name);
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  // Save name changes to localStorage
+  const handleNameSave = () => {
+    setIsEditing(false);
+    if (resumeData) {
+      const updatedData = {
+        ...resumeData,
+        basics: {
+          ...resumeData.basics,
+          name: name
+        }
+      };
+      setResumeData(updatedData);
+      localStorage.setItem('resumeData', JSON.stringify(updatedData));
     }
   };
 
@@ -119,19 +169,28 @@ export default function ProfileDashboard() {
         <div className="mb-6">
           <label className="block text-white font-medium">Name</label>
           {isEditing ? (
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full bg-[#2b2b2b] text-white rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-            />
+            <div className="flex gap-2">
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="flex-1 bg-[#2b2b2b] text-white rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+              <Button 
+                text="Save"
+                onClick={handleNameSave}
+                className="bg-[#00b4d8] text-white hover:bg-[#00b4d8]"
+              />
+            </div>
           ) : (
-            <p className="text-white">{name}</p>
+            <div className="flex gap-2">
+              <p className="flex-1 text-white">{name}</p>
+              <Button 
+                text="Edit"
+                onClick={() => setIsEditing(true)}
+                className="bg-[#00b4d8] text-white hover:bg-[#00b4d8]"
+              />
+            </div>
           )}
-          <Button 
-            text={isEditing ? "Save" : "Edit"}
-            onClick={() => setIsEditing(!isEditing)}
-            className="mt-2 bg-[#00b4d8] text-white hover:bg-[#00b4d8]"
-          />
         </div>
 
         <div className="mb-6">
@@ -162,14 +221,24 @@ export default function ProfileDashboard() {
           )}
         </div>
 
-        {/* Display some resume data to verify it's working */}
-        {resumeData.basics.name && (
+        {/* Display resume data */}
+        {resumeData && (
           <div className="mt-6 p-4 bg-[#2b2b2b] rounded-lg">
             <h2 className="text-white font-medium mb-2">Resume Data:</h2>
-            <p className="text-white">Name: {resumeData.basics.name}</p>
-            <p className="text-white">Email: {resumeData.basics.email}</p>
-            {resumeData.work.length > 0 && (
+            {resumeData.basics && (
+              <>
+                <p className="text-white">Name: {resumeData.basics.name}</p>
+                <p className="text-white">Email: {resumeData.basics.email}</p>
+                {resumeData.basics.location && (
+                  <p className="text-white">Location: {resumeData.basics.location.address}</p>
+                )}
+              </>
+            )}
+            {resumeData.work && resumeData.work.length > 0 && (
               <p className="text-white">Current Position: {resumeData.work[0].position}</p>
+            )}
+            {resumeData.skills && resumeData.skills.length > 0 && (
+              <p className="text-white">Skills: {resumeData.skills.map(skill => skill.name).join(", ")}</p>
             )}
           </div>
         )}

@@ -13,12 +13,12 @@ export default function Home() {
       <div className="min-h-screen w-full flex flex-col bg-[#1A1A1A]">
         <Navbar />
         <div className="flex-1">
-          <Hero />
+          <Hero id="home" />
           <LogoTicker />
           <Introduction />
-          <Features />
-          <Integrations />
-          <Faqs />
+          <Features id="features" />
+          <Integrations id="integrations" />
+          <Faqs id="faqs" />
           <CallToAction />
         </div>
         <Footer />

@@ -1,11 +1,20 @@
 import Tag from "../Home/Tag";
-import figmaIcon from "../../assets/images/figma-logo.svg";
-import notionIcon from "../../assets/images/notion-logo.svg";
+import figmaIcon from "../../assets/images/react-2.svg";
+import notionIcon from "../../assets/images/groq.svg";
 import slackIcon from "../../assets/images/slack-logo.svg";
-import relumeIcon from "../../assets/images/relume-logo.svg";
-import framerIcon from "../../assets/images/framer-logo.svg";
+import relumeIcon from "../../assets/images/fastapi.svg";
+import framerIcon from "../../assets/images/postgres.svg";
 import githubIcon from "../../assets/images/github-logo.svg";
 import IntegrationsColumn from '../Home/IntegrationsColumn'
+
+const IntegrationIcon = ({ icon, name }) => {
+    return (
+        <div className="w-12 h-12 rounded-lg bg-neutral-800 flex items-center justify-center">
+            <img src={icon} alt={name} className="w-6 h-6" />
+        </div>
+    );
+};
+
 export default function Integrations() {
     return (
         <section className="py-24 overflow-hidden">
@@ -13,11 +22,11 @@ export default function Integrations() {
                 <div className="grid lg:grid-cols-2 items-center lg:gap-16">
                     <div>
                         <div className="flex justify-center lg:justify-start">
-                            <Tag>Integrations</Tag>
+                            <Tag>Technologies</Tag>
                         </div>
                         <h2 className="text-4xl md:text-5xl lg:text-6xl font-medium mt-6 text-center lg:text-left">
-                            Plays well with{" "}
-                            <span className="text-[#00b4d8]">others</span>
+                            Built from the{" "}
+                            <span className="text-[#00b4d8]">ROBUST STACK</span>
                         </h2>
                         <p className="text-white/50 mt-4 text-lg text-center lg:text-left max-w-lg mx-auto lg:mx-0">
                             Lorem ipsum dolor, sit amet consectetur adipisicing
@@ -44,33 +53,39 @@ export default function Integrations() {
 
 const integrations = [
     {
-        name: "Figma",
+        name: "React",
         icon: figmaIcon,
-        description: "Figma is a collaborative interface design tool.",
+        description: "React is a JavaScript library for building user interfaces.",
     },
     {
-        name: "Notion",
+        name: "GSAP",
         icon: notionIcon,
-        description: "Notion is an all-in-one workspace for notes and docs.",
+        description: "GSAP is a powerful animation library for JavaScript.",
     },
     {
-        name: "Slack",
+        name: "Jotai",
         icon: slackIcon,
-        description: "Slack is a powerful team communication platform.",
+        description: "Jotai is a simple, scalable state management library for React.",
     },
     {
-        name: "Relume",
+        name: "FastAPI",
         icon: relumeIcon,
-        description: "Relume is a no-code website builder and design system.",
+        description: "FastAPI is a modern, fast (high-performance), web framework for building APIs with Python 3.8+.",
     },
     {
-        name: "Framer",
+        name: "PostgreSQL",
         icon: framerIcon,
-        description: "Framer is a professional website prototyping tool.",
+        description: "PostgreSQL is a powerful open-source relational database system.",
     },
     {
-        name: "GitHub",
-        icon: githubIcon,
-        description: "GitHub is the leading platform for code collaboration.",
+        name: "GROQ",
+        icon: notionIcon,
+        description: "GROQ is a powerful open-source LLM provider.",
     },
+    {
+        name: "Github",
+        icon: githubIcon,
+        description: "Github is the leading platform for code collaboration.",
+    },
+    
 ];

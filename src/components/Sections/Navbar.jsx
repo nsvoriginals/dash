@@ -17,6 +17,14 @@ export default function Navbar() {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
+  const handleNavClick = (e, href) => {
+    e.preventDefault();
+    const element = document.querySelector(href);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <>
       <section className="py-4 lg:py-8 fixed w-full top-0 z-50">
@@ -36,6 +44,7 @@ export default function Navbar() {
                     <a
                       href={link.href}
                       key={link.label}
+                      onClick={(e) => handleNavClick(e, link.href)}
                       className="text-white/80 hover:text-white transition-colors"
                     >
                       {link.label}
@@ -138,6 +147,7 @@ export default function Navbar() {
                       <a
                         href={link.href}
                         key={link.label}
+                        onClick={(e) => handleNavClick(e, link.href)}
                         className="text-white/80 hover:text-white transition-colors"
                       >
                         {link.label}

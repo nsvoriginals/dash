@@ -5,6 +5,7 @@ import InterviewQuestionsGenerator from "./components/InterviewGenComponents/Int
 import ProfileDash from "./components/ProfileComponents/ProfileDash";
 import PortfolioDash from "./components/PortfolioComponents/PortfolioDash";
 import ResumeBuilderDash from "./components/ResumeBuildComponents/ResumeBuildDash";
+import JobPortalDash from "./components/JobPortalComponents/JobPortalDash";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("ATS Metrics");
@@ -53,15 +54,9 @@ export default function Dashboard() {
         return <ATSDash />;
       case "Resume Builder":
         return <ResumeBuilderDash/>;
-      case "Portfolio":
-        return <PortfolioDash/>
-    
+     
       case "Job Portal":
-        return (
-          <div className="h-full flex items-center justify-center text-white text-2xl">
-            Job Portal Component
-          </div>
-        );
+        return <JobPortalDash/>;
       case "Profile":
         return <ProfileDash />;
       default:
@@ -104,7 +99,7 @@ export default function Dashboard() {
       {/* Hamburger button for mobile */}
       <button
         id="hamburger-button"
-        className="fixed top-4 left-4 z-40 md:hidden bg-[#131515] border-white text-white p-2 rounded shadow-lg"
+        className="fixed top-4 right-4 z-40 md:hidden bg-[#131515] border-white text-white p-2 rounded shadow-lg"
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         aria-label="Toggle menu"
       >

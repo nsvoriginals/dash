@@ -5,7 +5,7 @@ import { useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
-const text = `You're racing to create exceptional work, but traditional design tools slow you down with unnecessary complexity and steep learning curves.`;
+const text = `Companion for acing interviews like never before.We've seen the problem .`;
 const words = text.split(" ");
 
 export default function Introduction() {
@@ -30,13 +30,15 @@ export default function Introduction() {
         <section className="py-28 lg:py-40">
             <div className="container mx-auto px-4">
                 <div className="sticky top-20 md:top-30 lg:top-[140px] h-[80vh] flex items-center justify-center">
-                    <div className="w-full max-w-3xl">
-                        <div className="flex justify-center">
+                    <div className="w-full max-w-5xl px-4">
+                        <div className="flex justify-center mb-8">
                             <Tag>Introducing ATLAS AI</Tag>
                         </div>
-                        <div className="text-4xl md:text-6xl lg:text-7xl text-center font-medium mt-10">
-                            <span>Your creative process deserves better.</span>{" "}
-                            <span>
+                        <div className="text-4xl md:text-6xl lg:text-7xl font-medium space-y-6">
+                            <p className="text-center leading-tight">
+                                Your interview process deserves better.
+                            </p>
+                            <p className="text-center leading-tight">
                                 {words.map((word, wordIndex) => (
                                     <span
                                         key={wordIndex}
@@ -46,10 +48,10 @@ export default function Introduction() {
                                         )}
                                     >{`${word} `}</span>
                                 ))}
-                            </span>
-                            <span className="text-[#00b4d8] block">
-                                That&apos;s why we built Layers
-                            </span>
+                            </p>
+                            <p className="text-[#00b4d8] text-center leading-tight">
+                                That&apos;s why we built ATLAS
+                            </p>
                         </div>
                     </div>
                 </div>
