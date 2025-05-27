@@ -115,3 +115,171 @@
 
 
   https://dash-one-henna.vercel.app/
+
+
+
+  \documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage{fontawesome}
+
+% Page layout
+\geometry{margin=0.75in}
+
+% Colors
+\definecolor{primary}{RGB}{0, 51, 102}
+\definecolor{secondary}{RGB}{102, 102, 102}
+
+% Hyperlink styling
+\hypersetup{
+    colorlinks=true,
+    urlcolor=primary,
+    linkcolor=primary,
+    citecolor=primary
+}
+
+% Section formatting
+\titleformat{\section}{\large\bfseries\color{primary}}{}{0em}{}[\titlerule]
+\titlespacing*{\section}{0pt}{1em}{1em}
+
+% Custom spacing
+\setlist[itemize]{
+  topsep=4pt,
+  partopsep=2pt,
+  itemsep=3pt,
+  parsep=0pt,
+  leftmargin=1.5em,
+  itemindent=0pt
+}
+
+% Custom commands
+\newcommand{\resumeheading}[1]{\textbf{\color{primary}#1}}
+\newcommand{\company}[1]{\textit{\color{secondary}#1}}
+\newcommand{\duration}[1]{\hfill \textit{\color{secondary}#1}}
+\newcommand{\contacticon}[1]{\makebox[1em]{\color{primary}#1}}
+
+\begin{document}
+
+% ===== HEADER =====
+\begin{center}
+    {\LARGE \textbf{\color{primary}Thomas Davis}}\\[0.2em]
+    {\small
+    \contacticon{\faMapMarker} Melbourne, AU \quad \textbar \quad 
+    \contacticon{\faEnvelope} \href{mailto:thomasalwyndavis@gmail.com}{thomasalwyndavis@gmail.com} \quad \textbar \quad 
+    \contacticon{\faPhone} 041102102\\[0.2em]
+    \contacticon{\faGlobe} \href{https://lordajax.com}{lordajax.com} \quad \textbar \quad 
+    \contacticon{\faTwitter} @thomasdavis \quad \textbar \quad 
+    \contacticon{\faGithub} @ajaxdavis
+    }
+\end{center}
+
+\vspace{0.5em}
+
+% ===== SUMMARY =====
+\noindent \textbf{\color{primary}Summary:} Full stack web developer with extensive startup experience building applications from the ground up. Product-focused with strong emphasis on user feedback. Comfortable wearing multiple hats and adapting to new challenges.
+
+% ===== EXPERIENCE =====
+\section*{Experience}
+
+\resumeheading{Product Engineer} \duration{May 2020 — Present} \\
+\company{Misc Companies} \\
+\begin{itemize}
+  \item Worked at early-stage startups focusing on full stack development
+  \item Technologies: React, Next, Node, Laravel, LLMs, Diagrams/Canvas
+\end{itemize}
+
+\resumeheading{Senior Javascript Developer} \duration{May 2020 — May 2021} \\
+\company{Tokenized} \\
+\begin{itemize}
+  \item Built frontend for Bitcoin wallet using Electron
+  \item Technologies: React, Redux, SCSS
+  \item Additional responsibilities: Product management
+\end{itemize}
+
+\resumeheading{Senior Javascript Developer} \duration{Mar 2018 — Jan 2020} \\
+\company{Blacklist} \\
+\begin{itemize}
+  \item Lead developer at Australian crypto exchange
+  \item Technologies: React, Apollo, Styled Components, Node.js/Rails
+  \item Infrastructure: Docker, Heroku, GCP, SQL for large datasets
+\end{itemize}
+
+\resumeheading{Developer} \duration{Jan 2016 — Jan 2018} \\
+\company{Latium} \\
+\begin{itemize}
+  \item Built complex React/Redux app with multi-platform PWA support
+  \item Databases: Postgres, Redis, DynamoDB
+  \item Hosting: Heroku/EC2 with caching via Fastly, Cloudflare
+\end{itemize}
+
+% ===== PROJECTS =====
+\section*{Projects}
+
+\resumeheading{JSON Resume} \\
+\begin{itemize}
+  \item Founded JSON-based resume standard initiative
+  \item 3000+ GitHub stars, tens of thousands of users
+\end{itemize}
+
+% ===== EDUCATION =====
+\section*{Education}
+
+\resumeheading{The University of Queensland} \\
+Bachelor of Software Engineering (incomplete)
+
+% ===== SKILLS =====
+\section*{Technical Skills}
+
+\begin{itemize}
+  \item \textbf{Frontend:} React/Next, Redux/Apollo, JavaScript/TypeScript, HTML/JSX, CSS/SCSS
+  \item \textbf{Backend:} Node, Ruby, Python, Postgres, Redis, Serverless
+  \item \textbf{DevOps:} AWS, GCP, Heroku, Docker, CI/CD
+\end{itemize}
+
+% ===== AWARDS =====
+\section*{Awards}
+
+\begin{itemize}
+  \item \textbf{Defender of the Internet} — Fight for the Future (October 2014)
+\end{itemize}
+
+% ===== LANGUAGES =====
+\section*{Languages}
+
+\begin{itemize}
+  \item English (native)
+\end{itemize}
+
+% ===== INTERESTS =====
+\section*{Interests}
+
+\begin{itemize}
+  \item Open source development and community contribution
+  \item Technology history and software craftsmanship
+  \item Reading technical and philosophical literature
+\end{itemize}
+
+% ===== HOBBIES =====
+\section*{Hobbies
+\begin{itemize}
+  \item Gardening and permaculture
+  \item Music production and listening
+  \item Writing blog posts and long-form content
+\end{itemize}
+
+% ===== REFERENCES =====
+\section*{References}
+
+\begin{itemize}
+  \item \textbf{Joey Flores, CEO, Earbits:} ``A-player — smart, versatile, and deeply respected''
+  \item \textbf{Yotam Rosenbaum, SVP Ops, Earbits:} ``Phenomenal hacker and team player''
+  \item \textbf{Ryan Kirkman, Engineer, Nerdwallet:} ``Thought leader with huge output and broad skills''
+\end{itemize}
+
+\end{document}
