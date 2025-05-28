@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { QuestionCard } from "./QuestionCard";
@@ -13,9 +12,9 @@ import { jsPDF } from "jspdf";
 const Button = ({ text, onClick, className = '', disabled = false }) => {
   const baseStyles = "px-4 py-2 rounded-lg font-medium transition-colors";
   const disabledStyles = disabled ? "opacity-50 cursor-not-allowed" : "";
- 
+  
   return (
-    <button
+    <button 
       onClick={onClick}
       disabled={disabled}
       className={`${baseStyles} ${disabledStyles} ${className}`}
@@ -28,7 +27,7 @@ const Button = ({ text, onClick, className = '', disabled = false }) => {
 export default function InterviewQuestionsGenerator() {
   // Access and use resumeAtom from your store
   const [resumeData,setResumeData] = useAtom(resumeAtom);
- 
+  
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState("");
@@ -42,7 +41,7 @@ export default function InterviewQuestionsGenerator() {
  }
 
   // Auto-navigate option (commented out for now)
-  /*
+  /* 
   useEffect(() => {
     if (questions.length > 0) {
       navigate("/interview-questions", { state: { questions } });
@@ -54,33 +53,34 @@ export default function InterviewQuestionsGenerator() {
   // In the handleSubmit function, update the response handling:
 const handleSubmit = async (e) => {
   e.preventDefault();
- 
+  
   if (!role.trim()) {
     alert("Please enter a job role");
     return;
   }
- 
+  
   setLoading(true);
- 
+  
   try {
     // Prepare the data to send
     const requestData = {
       jobRole: role,
       experience: experience,
-      topics: skills.trim() ? skills.split(',').map(item => item.trim()) : [],
+      topics: skills.trim() ? skills.split(',').map(item => item.trim()) : [], 
       resumeData: resumeData
     };
 
-    const response = await fetch("http://localhost:8000/api/generate", {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/generate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: 'include',
       body: JSON.stringify(requestData),
     });
-   
+    
     const data = await response.json();
-   
+    
     // Handle the response structure
     if (data.success && data.data?.interview_questions) {
       setQuestions(data.data.interview_questions);
@@ -88,7 +88,7 @@ const handleSubmit = async (e) => {
     } else {
       throw new Error("Invalid response format");
     }
-   
+    
   } catch (error) {
     console.error("Error generating questions:", error);
     alert("Failed to generate interview questions. Please try again.");
@@ -118,10 +118,10 @@ const handleSubmit = async (e) => {
 
   const exportToPDF = () => {
     const doc = new jsPDF();
- 
+  
     doc.setFont("helvetica", "bold");
     doc.setFontSize(24);
-   
+    
     const headerText = "Atlas AI";
     const headerWidth = doc.getTextWidth(headerText);
     const headerX = (doc.internal.pageSize.width - headerWidth) / 2;
@@ -171,13 +171,13 @@ const handleSubmit = async (e) => {
   // Helper function to extract resume info for display (optional)
   const getResumeInfo = () => {
     const basicInfo = [];
-   
-    if (resumeData.basics && resumeData.basics.name)
+    
+    if (resumeData.basics && resumeData.basics.name) 
       basicInfo.push(`Name: ${resumeData.basics.name}`);
-   
-    if (resumeData.basics && resumeData.basics.label)
+    
+    if (resumeData.basics && resumeData.basics.label) 
       basicInfo.push(`Title: ${resumeData.basics.label}`);
-   
+    
     const skillsList = resumeData.skills?.map(skill => skill.name).join(", ") || "";
     if (skillsList) basicInfo.push(`Skills: ${skillsList}`);
    
