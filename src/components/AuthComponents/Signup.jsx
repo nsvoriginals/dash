@@ -68,6 +68,12 @@ export default function SignUp() {
           username: formData.username,
           email: formData.email,
           password: formData.password
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          mode: 'cors'
         });
         
         console.log(response);

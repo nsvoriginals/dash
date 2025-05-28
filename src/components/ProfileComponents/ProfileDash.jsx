@@ -59,7 +59,15 @@ export default function ProfileDashboard() {
   const fetchResumeFromBackend = async () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/resumes/latest`, {
+<<<<<<< HEAD
         credentials: 'include',
+=======
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        mode: 'cors'
+>>>>>>> 5c50f34f283d093338bd78afb5b8713040e37717
       });
 
       if (response.ok) {
@@ -107,7 +115,9 @@ export default function ProfileDashboard() {
         {
           headers: {
             "Content-Type": "multipart/form-data",
+            "Accept": "application/json",
           },
+          mode: 'cors'
         }
       );
 

@@ -76,6 +76,7 @@ const handleSubmit = async (e) => {
       headers: {
         "Content-Type": "application/json",
       },
+      
       body: JSON.stringify(requestData),
     });
     
@@ -176,7 +177,7 @@ const handleSubmit = async (e) => {
     
     const skillsList = resumeData.skills?.map(skill => skill.name).join(", ") || "";
     if (skillsList) basicInfo.push(`Skills: ${skillsList}`);
-    
+   
     return basicInfo;
   };
 
@@ -208,7 +209,7 @@ const handleSubmit = async (e) => {
                 <p className="text-gray-300 mb-8 text-center">
                   Enter job details to generate tailored interview questions for your next hire.
                 </p>
-                
+               
                 {/* Resume Data Alert/Info */}
                 {hasResumeData && (
                   <div className="bg-[#2a2a2a] border border-[#3a3a3a] rounded-lg p-4 mb-6">
@@ -223,7 +224,7 @@ const handleSubmit = async (e) => {
                     </div>
                   </div>
                 )}
-                
+               
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Job Role */}
                   <div className="space-y-2">
@@ -246,8 +247,8 @@ const handleSubmit = async (e) => {
                           type="button"
                           onClick={() => setExperience(level)}
                           className={`py-2 rounded-lg transition-colors ${
-                            experience === level 
-                              ? 'bg-[#00b4d8] text-white' 
+                            experience === level
+                              ? 'bg-[#00b4d8] text-white'
                               : 'bg-[#2b2b2b] text-gray-300 hover:bg-[#3b3b3b]'
                           }`}
                         >
@@ -269,8 +270,8 @@ const handleSubmit = async (e) => {
                   </div>
 
                   {/* Submit Button */}
-                  <Button 
-                    text="Generate Questions" 
+                  <Button
+                    text="Generate Questions"
                     onClick={handleSubmit}
                     className="w-full py-3 bg-[#00b4d8] text-white hover:bg-indigo-700"
                     disabled={!role.trim()}
@@ -286,7 +287,7 @@ const handleSubmit = async (e) => {
                     onClick={handleReset}
                     className="bg-gray-700 text-white hover:bg-gray-600"
                   />
-                  <motion.h2 
+                  <motion.h2
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.3 }}
