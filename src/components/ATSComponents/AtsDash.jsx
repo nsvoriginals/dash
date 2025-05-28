@@ -60,6 +60,8 @@ export default function ATSDash() {
   const [resumeFileName, setResumeFileName] = useState("");
   const [atsData, setAtsData] = useAtom(atsAtom);
 
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
   // Simple Button component
   const Button = ({ text, onClick, variant = 'primary', className = '', disabled = false }) => {
     const baseStyles = "px-4 py-2 rounded-lg font-medium transition-colors";
@@ -103,9 +105,12 @@ export default function ATSDash() {
     formData.append("job_description", jobDescription);
 
     try {
-      const backendUrl =  "http://localhost:8000";
       const response = await axios.post(`${backendUrl}/ats/ats-details`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: { 
+          "Content-Type": "multipart/form-data",
+          "Accept": "application/json",
+        },
+        
       });
 
       if (response.data.success) {

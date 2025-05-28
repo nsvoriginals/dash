@@ -8,7 +8,7 @@ import Faqs from "./components/Sections/Faqs";
 import CallToAction from "./components/Sections/CallToAction";
 import Footer from "./components/Sections/Footer";
 
-export default function Home() {
+export default function LandingPage() {
     return (
       <div className="min-h-screen w-full flex flex-col bg-[#1A1A1A]">
         <Navbar />

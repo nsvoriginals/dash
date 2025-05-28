@@ -4,9 +4,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import SignUp from './components/AuthComponents/Signup';
 import SignIn from './components/AuthComponents/Signin';
 import Dashboard from './Dashboard';
-import LandingPage from './LandingPage';
-import Sidebar from './components/Sidebar';
 
+import LandingPage from './Landingpage';
 function AppContent() {
   const location = useLocation();
   const isLandingPage = location.pathname === '/';

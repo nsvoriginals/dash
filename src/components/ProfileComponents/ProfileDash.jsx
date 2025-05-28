@@ -63,8 +63,12 @@ export default function ProfileDashboard() {
   // Fetch resume from backend
   const fetchResumeFromBackend = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/resumes/latest', {
-        credentials: 'include',
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/resumes/latest`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        mode: 'cors'
       });
 
       if (response.ok) {
@@ -109,12 +113,14 @@ export default function ProfileDashboard() {
       formData.append("file", resumeFile);
 
       const response = await axios.post(
-        "http://localhost:8000/resume/upload", 
+        `${import.meta.env.VITE_BACKEND_URL}/resume/upload`, 
         formData, 
         {
           headers: {
             "Content-Type": "multipart/form-data",
+            "Accept": "application/json",
           },
+          mode: 'cors'
         }
       );
 
