@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { QuestionCard } from "./QuestionCard";
@@ -12,9 +13,9 @@ import { jsPDF } from "jspdf";
 const Button = ({ text, onClick, className = '', disabled = false }) => {
   const baseStyles = "px-4 py-2 rounded-lg font-medium transition-colors";
   const disabledStyles = disabled ? "opacity-50 cursor-not-allowed" : "";
-  
+ 
   return (
-    <button 
+    <button
       onClick={onClick}
       disabled={disabled}
       className={`${baseStyles} ${disabledStyles} ${className}`}
@@ -26,8 +27,8 @@ const Button = ({ text, onClick, className = '', disabled = false }) => {
 
 export default function InterviewQuestionsGenerator() {
   // Access and use resumeAtom from your store
-  const [resumeData, setResumeData] = useAtom(resumeAtom);
-  
+  const [resumeData,setResumeData] = useAtom(resumeAtom);
+ 
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState("");
@@ -36,22 +37,12 @@ export default function InterviewQuestionsGenerator() {
   const [questions, setQuestions] = useState([]);
   const navigate = useNavigate();
 
-  // Initialize resumeData from localStorage if empty
-  useEffect(() => {
-    if (!resumeData || Object.keys(resumeData).length === 0) {
-      const savedData = localStorage.getItem("resumeData");
-      if (savedData) {
-        try {
-          setResumeData(JSON.parse(savedData));
-        } catch (error) {
-          console.error("Error parsing resume data:", error);
-        }
-      }
-    }
-  }, [resumeData, setResumeData]);
+ if(resumeData=={}){
+  setResumeData(localStorage.getItem("resumeData"))
+ }
 
   // Auto-navigate option (commented out for now)
-  /* 
+  /*
   useEffect(() => {
     if (questions.length > 0) {
       navigate("/interview-questions", { state: { questions } });
@@ -63,36 +54,33 @@ export default function InterviewQuestionsGenerator() {
   // In the handleSubmit function, update the response handling:
 const handleSubmit = async (e) => {
   e.preventDefault();
-  
+ 
   if (!role.trim()) {
     alert("Please enter a job role");
     return;
   }
-  
+ 
   setLoading(true);
-  
+ 
   try {
     // Prepare the data to send
     const requestData = {
       jobRole: role,
       experience: experience,
-      topics: skills.trim() ? skills.split(',').map(item => item.trim()) : [], 
+      topics: skills.trim() ? skills.split(',').map(item => item.trim()) : [],
       resumeData: resumeData
     };
 
-    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/generate`, {
+    const response = await fetch("http://localhost:8000/api/generate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json",
       },
-      credentials: 'include',
-      mode: 'cors',
       body: JSON.stringify(requestData),
     });
-    
+   
     const data = await response.json();
-    
+   
     // Handle the response structure
     if (data.success && data.data?.interview_questions) {
       setQuestions(data.data.interview_questions);
@@ -100,7 +88,7 @@ const handleSubmit = async (e) => {
     } else {
       throw new Error("Invalid response format");
     }
-    
+   
   } catch (error) {
     console.error("Error generating questions:", error);
     alert("Failed to generate interview questions. Please try again.");
@@ -130,10 +118,10 @@ const handleSubmit = async (e) => {
 
   const exportToPDF = () => {
     const doc = new jsPDF();
-  
+ 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(24);
-    
+   
     const headerText = "Atlas AI";
     const headerWidth = doc.getTextWidth(headerText);
     const headerX = (doc.internal.pageSize.width - headerWidth) / 2;
@@ -180,28 +168,27 @@ const handleSubmit = async (e) => {
   };
 
 
-  // Helper function to extract resume info for display
+  // Helper function to extract resume info for display (optional)
   const getResumeInfo = () => {
     const basicInfo = [];
-    
-    if (resumeData?.basics?.name) {
+   
+    if (resumeData.basics && resumeData.basics.name)
       basicInfo.push(`Name: ${resumeData.basics.name}`);
-    }
-    
-    if (resumeData?.basics?.label) {
+   
+    if (resumeData.basics && resumeData.basics.label)
       basicInfo.push(`Title: ${resumeData.basics.label}`);
-    }
-    
-    const skillsList = resumeData?.skills?.map(skill => skill.name).join(", ") || "";
-    if (skillsList) {
-      basicInfo.push(`Skills: ${skillsList}`);
-    }
-    
-    return basicInfo.join("\n");
+   
+    const skillsList = resumeData.skills?.map(skill => skill.name).join(", ") || "";
+    if (skillsList) basicInfo.push(`Skills: ${skillsList}`);
+   
+    return basicInfo;
   };
 
+  const resumeInfo = getResumeInfo();
+  const hasResumeData = resumeInfo.length > 0;
+
   return (
-    <main className="flex-1 bg-[#131515] overflow-auto">
+    <main className="flex-1 bg-[#131515] overflow-auto min-h-screen">
       <AnimatePresence mode="wait">
         <motion.div
           key={submitted ? "results" : "form"}
@@ -223,62 +210,73 @@ const handleSubmit = async (e) => {
                   Interview Questions Generator
                 </h1>
                 <p className="text-gray-300 mb-8 text-center">
-                  Enter job details to generate relevant interview questions.
+                  Enter job details to generate tailored interview questions for your next hire.
                 </p>
-                
+               
+                {/* Resume Data Alert/Info */}
+                {hasResumeData && (
+                  <div className="bg-[#2a2a2a] border border-[#3a3a3a] rounded-lg p-4 mb-6">
+                    <h3 className="text-[#00b4d8] font-medium mb-2">Resume Data Detected</h3>
+                    <div className="text-gray-300 text-sm">
+                      {resumeInfo.map((info, index) => (
+                        <div key={index} className="mb-1">{info}</div>
+                      ))}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-2">
+                      This data will be used to generate more personalized questions.
+                    </div>
+                  </div>
+                )}
+               
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Job Role */}
                   <div className="space-y-2">
-                    <label htmlFor="role" className="block text-white font-medium">
-                      Job Role
-                    </label>
+                    <label className="block text-white font-medium">Job Role</label>
                     <input
-                      type="text"
-                      id="role"
                       value={role}
                       onChange={(e) => setRole(e.target.value)}
-                      className="w-full bg-[#2b2b2b] text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#00b4d8] focus:outline-none"
-                      placeholder="e.g., Software Engineer"
+                      className="w-full bg-[#2b2b2b] text-white rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                      placeholder="e.g. Frontend Developer, Blockchain Engineer"
                     />
                   </div>
 
                   {/* Experience Level */}
                   <div className="space-y-2">
-                    <label htmlFor="experience" className="block text-white font-medium">
-                      Experience Level
-                    </label>
-                    <select
-                      id="experience"
-                      value={experience}
-                      onChange={(e) => setExperience(e.target.value)}
-                      className="w-full bg-[#2b2b2b] text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#00b4d8] focus:outline-none"
-                    >
-                      <option value="entry">Entry Level</option>
-                      <option value="mid">Mid Level</option>
-                      <option value="senior">Senior Level</option>
-                    </select>
+                    <label className="block text-white font-medium">Experience Level</label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {['junior', 'mid', 'senior'].map((level) => (
+                        <button
+                          key={level}
+                          type="button"
+                          onClick={() => setExperience(level)}
+                          className={`py-2 rounded-lg transition-colors ${
+                            experience === level
+                              ? 'bg-[#00b4d8] text-white'
+                              : 'bg-[#2b2b2b] text-gray-300 hover:bg-[#3b3b3b]'
+                          }`}
+                        >
+                          {level.charAt(0).toUpperCase() + level.slice(1)}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
-                  {/* Skills */}
+                  {/* Special Skills */}
                   <div className="space-y-2">
-                    <label htmlFor="skills" className="block text-white font-medium">
-                      Skills (comma-separated)
-                    </label>
+                    <label className="block text-white font-medium">Special Skills/Topics (Optional)</label>
                     <textarea
-                      id="skills"
                       value={skills}
                       onChange={(e) => setSkills(e.target.value)}
-                      className="w-full bg-[#2b2b2b] text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#00b4d8] focus:outline-none"
-                      placeholder="e.g., JavaScript, React, Node.js"
-                      rows="3"
+                      className="w-full h-32 bg-[#2b2b2b] text-white rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                      placeholder="e.g. React, TypeScript, Blockchain, Smart Contracts (comma separated)"
                     />
                   </div>
 
                   {/* Submit Button */}
                   <Button
                     text="Generate Questions"
-                    type="submit"
-                    className="w-full bg-[#00b4d8] text-white hover:bg-[#00b4d8]/90"
+                    onClick={handleSubmit}
+                    className="w-full py-3 bg-[#00b4d8] text-white hover:bg-indigo-700"
                     disabled={!role.trim()}
                   />
                 </form>
@@ -288,11 +286,11 @@ const handleSubmit = async (e) => {
               <>
                 <div className="flex justify-between items-center mb-8">
                   <Button
-                    text="New Questions"
+                    text="Generate New Questions"
                     onClick={handleReset}
                     className="bg-gray-700 text-white hover:bg-gray-600"
                   />
-                  <motion.h2 
+                  <motion.h2
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.3 }}
@@ -300,21 +298,37 @@ const handleSubmit = async (e) => {
                   >
                     Interview Questions
                   </motion.h2>
-                  <Button
-                    text="Export PDF"
-                    onClick={exportToPDF}
-                    className="bg-[#00b4d8] text-white hover:bg-[#00b4d8]/90"
-                  />
+                  <div className="w-24" />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {questions.map((question, index) => (
-                    <QuestionCard
-                      key={index}
-                      question={question}
-                      index={index + 1}
-                    />
-                  ))}
+                <motion.div
+                  className="max-h-[70vh] overflow-y-auto mt-4 pb-6"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                 
+
+{questions.map((question, index) => (
+  <motion.div key={question.id || index} className="mb-4">
+    <QuestionCard
+      no={index + 1}
+      question={question.question}
+      answer={question.expected_answer}
+      difficulty={question.difficulty}
+      type={question.type}
+      skills={question.skill_tested}
+    />
+  </motion.div>
+))}
+                </motion.div>
+
+                <div className="flex mt-6 space-x-4">
+                  <Button
+                    onClick={exportToPDF}
+                    text="Export as PDF"
+                    className="flex-1 bg-[#00b4d8] text-white p-3 rounded-lg hover:bg-indigo-700"
+                  />
                 </div>
               </>
             )}
