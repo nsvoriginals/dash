@@ -26,7 +26,7 @@ const Button = ({ text, onClick, className = '', disabled = false }) => {
 
 export default function InterviewQuestionsGenerator() {
   // Access and use resumeAtom from your store
-  const [resumeData,setResumeData] = useAtom(resumeAtom);
+  const [resumeData, setResumeData] = useAtom(resumeAtom);
   
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -36,9 +36,19 @@ export default function InterviewQuestionsGenerator() {
   const [questions, setQuestions] = useState([]);
   const navigate = useNavigate();
 
- if(resumeData=={}){
-  setResumeData(localStorage.getItem("resumeData"))
- }
+  // Initialize resumeData from localStorage if empty
+  useEffect(() => {
+    if (!resumeData || Object.keys(resumeData).length === 0) {
+      const savedData = localStorage.getItem("resumeData");
+      if (savedData) {
+        try {
+          setResumeData(JSON.parse(savedData));
+        } catch (error) {
+          console.error("Error parsing resume data:", error);
+        }
+      }
+    }
+  }, [resumeData, setResumeData]);
 
   // Auto-navigate option (commented out for now)
   /* 
@@ -76,6 +86,7 @@ const handleSubmit = async (e) => {
         "Content-Type": "application/json",
         "Accept": "application/json",
       },
+      credentials: 'include',
       mode: 'cors',
       body: JSON.stringify(requestData),
     });
@@ -169,15 +180,147 @@ const handleSubmit = async (e) => {
   };
 
 
-  // Helper function to extract resume info for display (optional)
+  // Helper function to extract resume info for display
   const getResumeInfo = () => {
     const basicInfo = [];
     
-    if (resumeData.basics && resumeData.basics.name) 
+    if (resumeData?.basics?.name) {
       basicInfo.push(`Name: ${resumeData.basics.name}`);
+    }
     
-    if (resumeData.basics && resumeData.basics.label) 
+    if (resumeData?.basics?.label) {
       basicInfo.push(`Title: ${resumeData.basics.label}`);
+    }
     
-    const skillsList = resumeData.skills?.map(skill => skill.name).join(", ") || "";
-    if (skillsList) basicInfo.push(`
+    const skillsList = resumeData?.skills?.map(skill => skill.name).join(", ") || "";
+    if (skillsList) {
+      basicInfo.push(`Skills: ${skillsList}`);
+    }
+    
+    return basicInfo.join("\n");
+  };
+
+  return (
+    <main className="flex-1 bg-[#131515] overflow-auto">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={submitted ? "results" : "form"}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          className="h-full p-6"
+        >
+          <div className="max-w-6xl mx-auto">
+            {!submitted ? (
+              // INPUT FORM
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-[#1e1e1e] rounded-xl p-6 shadow-lg max-w-2xl mx-auto mt-10"
+              >
+                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6 text-center">
+                  Interview Questions Generator
+                </h1>
+                <p className="text-gray-300 mb-8 text-center">
+                  Enter job details to generate relevant interview questions.
+                </p>
+                
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Job Role */}
+                  <div className="space-y-2">
+                    <label htmlFor="role" className="block text-white font-medium">
+                      Job Role
+                    </label>
+                    <input
+                      type="text"
+                      id="role"
+                      value={role}
+                      onChange={(e) => setRole(e.target.value)}
+                      className="w-full bg-[#2b2b2b] text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#00b4d8] focus:outline-none"
+                      placeholder="e.g., Software Engineer"
+                    />
+                  </div>
+
+                  {/* Experience Level */}
+                  <div className="space-y-2">
+                    <label htmlFor="experience" className="block text-white font-medium">
+                      Experience Level
+                    </label>
+                    <select
+                      id="experience"
+                      value={experience}
+                      onChange={(e) => setExperience(e.target.value)}
+                      className="w-full bg-[#2b2b2b] text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#00b4d8] focus:outline-none"
+                    >
+                      <option value="entry">Entry Level</option>
+                      <option value="mid">Mid Level</option>
+                      <option value="senior">Senior Level</option>
+                    </select>
+                  </div>
+
+                  {/* Skills */}
+                  <div className="space-y-2">
+                    <label htmlFor="skills" className="block text-white font-medium">
+                      Skills (comma-separated)
+                    </label>
+                    <textarea
+                      id="skills"
+                      value={skills}
+                      onChange={(e) => setSkills(e.target.value)}
+                      className="w-full bg-[#2b2b2b] text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#00b4d8] focus:outline-none"
+                      placeholder="e.g., JavaScript, React, Node.js"
+                      rows="3"
+                    />
+                  </div>
+
+                  {/* Submit Button */}
+                  <Button
+                    text="Generate Questions"
+                    type="submit"
+                    className="w-full bg-[#00b4d8] text-white hover:bg-[#00b4d8]/90"
+                    disabled={!role.trim()}
+                  />
+                </form>
+              </motion.div>
+            ) : (
+              // RESULTS DISPLAY
+              <>
+                <div className="flex justify-between items-center mb-8">
+                  <Button
+                    text="New Questions"
+                    onClick={handleReset}
+                    className="bg-gray-700 text-white hover:bg-gray-600"
+                  />
+                  <motion.h2 
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="text-2xl sm:text-3xl font-bold text-white"
+                  >
+                    Interview Questions
+                  </motion.h2>
+                  <Button
+                    text="Export PDF"
+                    onClick={exportToPDF}
+                    className="bg-[#00b4d8] text-white hover:bg-[#00b4d8]/90"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {questions.map((question, index) => (
+                    <QuestionCard
+                      key={index}
+                      question={question}
+                      index={index + 1}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </main>
+  );
+}
