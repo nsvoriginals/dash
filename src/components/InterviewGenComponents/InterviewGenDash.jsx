@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { QuestionCard } from "./QuestionCard";
 import { useAtom } from "jotai";
-import resumeAtom from '../../store/Resume' // Import the resumeAtom from your store
+import resumeAtom from '../../store/Resume'
 import { useNavigate } from "react-router-dom";
 import { jsPDF } from "jspdf";
+import AnimatedLoader from "../AnimatedLoader";
 
 // Sample mock data for interview questions
 
@@ -70,7 +71,7 @@ const handleSubmit = async (e) => {
       resumeData: resumeData
     };
 
-    const response = await fetch("http://localhost:8000/api/generate", {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/generate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -107,11 +108,7 @@ const handleSubmit = async (e) => {
 
   // Loading state
   if (loading) return (
-    <main className="flex-1 bg-[#131515] overflow-auto">
-      <div className="flex items-center justify-center h-full text-white">
-        <div className="animate-pulse text-xl">Generating interview questions...</div>
-      </div>
-    </main>
+    <AnimatedLoader text="Generating interview questions..." size={64} />
   );
 
 

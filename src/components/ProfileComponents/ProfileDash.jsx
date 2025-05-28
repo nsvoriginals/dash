@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import { useAtom } from "jotai";
 import resumeAtom from "../../store/Resume";
+import AnimatedLoader from "../AnimatedLoader";
 
 const Button = ({ text, onClick, className = '', disabled = false }) => {
   const baseStyles = "px-4 py-2 rounded-lg font-medium transition-colors";
@@ -28,14 +29,11 @@ export default function ProfileDashboard() {
   const [uploadError, setUploadError] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   
-  // Use the Jotai atom
   const [resumeData, setResumeData] = useAtom(resumeAtom);
 
-  // Load from localStorage on component mount
   useEffect(() => {
     const loadResumeData = () => {
       try {
-        // Try to load from localStorage first
         const savedData = localStorage.getItem('resumeData');
         if (savedData) {
           const parsedData = JSON.parse(savedData);
@@ -43,13 +41,11 @@ export default function ProfileDashboard() {
           setResumeDetails("Resume loaded from local storage");
           setUploadSuccess(true);
           
-          // If we have basic info, update the name
           if (parsedData.basics?.name) {
             setName(parsedData.basics.name);
           }
         }
 
-        // Then try to fetch from backend
         fetchResumeFromBackend();
       } catch (error) {
         console.error('Failed to load resume data:', error);
@@ -60,10 +56,9 @@ export default function ProfileDashboard() {
     loadResumeData();
   }, [setResumeData]);
 
-  // Fetch resume from backend
   const fetchResumeFromBackend = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/resumes/latest', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/resumes/latest`, {
         credentials: 'include',
       });
 
@@ -73,12 +68,10 @@ export default function ProfileDashboard() {
         setResumeDetails("Resume loaded from server");
         setUploadSuccess(true);
         
-        // Update name if available
         if (data.basics?.name) {
           setName(data.basics.name);
         }
 
-        // Save to localStorage
         localStorage.setItem('resumeData', JSON.stringify(data));
       }
     } catch (error) {
@@ -109,7 +102,7 @@ export default function ProfileDashboard() {
       formData.append("file", resumeFile);
 
       const response = await axios.post(
-        "http://localhost:8000/resume/upload", 
+        `${import.meta.env.VITE_BACKEND_URL}/resume/upload`, 
         formData, 
         {
           headers: {
@@ -118,10 +111,8 @@ export default function ProfileDashboard() {
         }
       );
 
-      // Update the Jotai atom with the response data
       if (response.data) {
         setResumeData(response.data);
-        // Save to localStorage
         localStorage.setItem('resumeData', JSON.stringify(response.data));
       }
 
@@ -138,7 +129,6 @@ export default function ProfileDashboard() {
     }
   };
 
-  // Save name changes to localStorage
   const handleNameSave = () => {
     setIsEditing(false);
     if (resumeData) {
@@ -221,7 +211,6 @@ export default function ProfileDashboard() {
           )}
         </div>
 
-        {/* Display resume data */}
         {resumeData && (
           <div className="mt-6 p-4 bg-[#2b2b2b] rounded-lg">
             <h2 className="text-white font-medium mb-2">Resume Data:</h2>

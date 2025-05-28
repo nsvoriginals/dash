@@ -5,14 +5,13 @@ import SignUp from './components/AuthComponents/Signup';
 import SignIn from './components/AuthComponents/Signin';
 import Dashboard from './Dashboard';
 import LandingPage from './LandingPage';
-import Sidebar from './components/Sidebar';
 
 function AppContent() {
   const location = useLocation();
   const isLandingPage = location.pathname === '/';
-
+  
   return (
-    <div className='m-0 p-0 w-screen min-h-screen font-Tensor bg-[#1A1A1A]'>
+    <div className='w-full h-full min-h-screen font-Tensor bg-[#1A1A1A] overflow-x-hidden'>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/signin" element={<SignIn />} />
@@ -20,7 +19,9 @@ function AppContent() {
         <Route
           path="/dashboard"
           element={
-            <Dashboard />
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />

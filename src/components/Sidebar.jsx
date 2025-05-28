@@ -1,229 +1,168 @@
-import { useState, useEffect } from "react";
-import { twMerge } from "tailwind-merge";
-import { AnimatePresence, motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import Button from "./Home/Button";
+import React, { useEffect, useRef } from "react";
 
-const navLinks = [
-  { label: "Home", href: "#" },
-  { label: "Features", href: "#features" },
-  { label: "Integrations", href: "#integrations" },
-  { label: "FAQs", href: "#faqs" },
-];
+export default function Sidebar({ activeTab, setActiveTab, isOpen, toggleSidebar }) {
+  const sidebarRef = useRef(null);
+  const menuItems = [
+    "ATS Metrics",
+    "Resume Builder",
+    "Interview Questions Generator",
+    "Job Portal",
+    "Profile"
+  ];
 
-export default function Sidebar({ onTabChange }) {
-  const token = localStorage.getItem("token");
-  const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("Profile");
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Check if mobile on mount and resize
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-      // Close sidebar on desktop
-      if (window.innerWidth >= 768) {
-        setIsOpen(false);
-      }
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Close sidebar when clicking outside on mobile
+  // Handle click outside to close sidebar on mobile
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (isMobile && isOpen && !event.target.closest('.sidebar-container')) {
-        setIsOpen(false);
+      if (
+        isOpen && 
+        sidebarRef.current && 
+        !sidebarRef.current.contains(event.target) &&
+        window.innerWidth < 768
+      ) {
+        toggleSidebar();
       }
     };
 
-    if (isOpen && isMobile) {
+    if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('touchstart', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-    };
-  }, [isOpen, isMobile]);
-
-  // Prevent body scroll when mobile menu is open
-  useEffect(() => {
-    if (isMobile && isOpen) {
+      // Prevent scrolling when sidebar is open on mobile
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
     }
 
     return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, isMobile]);
-
-  const handleTabClick = (tab) => {
-    setActiveTab(tab);
-    if (onTabChange) {
-      onTabChange(tab);
-    }
-    // Close mobile menu when tab is selected
-    if (isMobile) {
-      setIsOpen(false);
-    }
-  };
-
-  
-const handleLogout = () => {
-  localStorage.clear();
-  setToken(null); // This will cause a re-render
-  navigate("/");
-};
+  }, [isOpen, toggleSidebar]);
 
   return (
     <>
-      {/* Mobile Hamburger Button */}
-      {isMobile && (
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="fixed top-4 left-4 z-[100] p-2 bg-[#1e1e1e] text-white rounded-lg border border-white/10 md:hidden"
-          aria-label="Toggle menu"
-        >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            {isOpen ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            )}
-          </svg>
-        </button>
-      )}
-
       {/* Mobile Overlay */}
-      <AnimatePresence>
-        {isMobile && isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-[90] md:hidden"
-            onClick={() => setIsOpen(false)}
-          />
-        )}
-      </AnimatePresence>
-
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={toggleSidebar}
+        />
+      )}
+      
       {/* Sidebar */}
-      <AnimatePresence>
-        {(!isMobile || isOpen) && (
-          <motion.div
-            initial={isMobile ? { x: -280 } : false}
-            animate={{ x: 0 }}
-            exit={isMobile ? { x: -280 } : {}}
-            transition={{ type: "tween", duration: 0.3 }}
-            className={twMerge(
-              "sidebar-container h-full bg-[#1e1e1e] border-r border-white/10 flex flex-col",
-              isMobile 
-                ? "fixed top-0 left-0 w-72 z-[95]" 
-                : "w-64 relative"
-            )}
+      <div 
+        ref={sidebarRef}
+        className={`
+          fixed md:relative
+          top-0 left-0
+          bg-[#1A1A1A] text-white 
+          w-80 md:w-84 
+          h-full 
+          flex flex-col 
+          px-3 
+          transition-transform duration-300 
+          z-50
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
+          md:translate-x-0
+        `}
+      >
+        {/* Mobile Close Button */}
+        <div className="md:hidden flex justify-end p-4">
+          <button 
+            onClick={toggleSidebar}
+            className="text-white hover:text-gray-300 p-1"
+            aria-label="Close sidebar"
           >
-            {/* Logo */}
-            <div className="p-4 border-b border-white/10">
-              <h1 className="text-xl font-bold text-white">ATLAS</h1>
-            </div>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
 
-            {/* Navigation */}
-            <nav className="flex-1 overflow-y-auto py-4">
-              <ul className="space-y-2 px-4">
-                <li>
-                  <button
-                    onClick={() => handleTabClick("Profile")}
-                    className={twMerge(
-                      "w-full text-left px-4 py-2 rounded-lg transition-colors",
-                      activeTab === "Profile"
-                        ? "bg-indigo-600 text-white"
-                        : "text-gray-300 hover:bg-white/5"
-                    )}
-                  >
-                    Profile
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => handleTabClick("Resume Builder")}
-                    className={twMerge(
-                      "w-full text-left px-4 py-2 rounded-lg transition-colors",
-                      activeTab === "Resume Builder"
-                        ? "bg-indigo-600 text-white"
-                        : "text-gray-300 hover:bg-white/5"
-                    )}
-                  >
-                    Resume Builder
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => handleTabClick("ATS Metrics")}
-                    className={twMerge(
-                      "w-full text-left px-4 py-2 rounded-lg transition-colors",
-                      activeTab === "ATS Metrics"
-                        ? "bg-indigo-600 text-white"
-                        : "text-gray-300 hover:bg-white/5"
-                    )}
-                  >
-                    ATS Metrics
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => handleTabClick("Interview Questions Generator")}
-                    className={twMerge(
-                      "w-full text-left px-4 py-2 rounded-lg transition-colors",
-                      activeTab === "Interview Questions Generator"
-                        ? "bg-indigo-600 text-white"
-                        : "text-gray-300 hover:bg-white/5"
-                    )}
-                  >
-                    Interview Questions
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => handleTabClick("Job Portal")}
-                    className={twMerge(
-                      "w-full text-left px-4 py-2 rounded-lg transition-colors",
-                      activeTab === "Job Portal"
-                        ? "bg-indigo-600 text-white"
-                        : "text-gray-300 hover:bg-white/5"
-                    )}
-                  >
-                    Job Portal
-                  </button>
-                </li>
-              </ul>
-            </nav>
+        {/* User profile section */}
+        <div className="p-6 flex items-center space-x-4 border-b border-gray-700">
+          <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center overflow-hidden">
+            <img 
+              className="w-full h-full object-cover"
+              src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg?semt=ais_hybrid&w=740" 
+              alt="User Avatar" 
+            />
+          </div>
+          <div>
+            <h3 className="font-semibold">User Name</h3>
+            <p className="text-sm text-gray-400">Member</p>
+          </div>
+        </div>
 
-            {/* User Section */}
-            <div className="p-4 border-t border-white/10">
-              <button
-                onClick={handleLogout}
-                className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                Logout
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        {/* Menu items */}
+        <nav className="flex-1 py-4 overflow-y-auto">
+          <ul>
+            {menuItems.map((item) => (
+              <li key={item}>
+                <button
+                  onClick={() => setActiveTab(item)}
+                  className={`
+                    w-full text-left py-3 my-3 px-6 
+                    flex items-center space-x-3 
+                    hover:bg-[#00b4d8] transition-colors
+                    touch-manipulation
+                    ${activeTab === item ? "bg-[#00b4d8] border-l-4 border-blue-400" : ""}
+                  `}
+                >
+                  <div className="w-5 h-5 flex-shrink-0">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      className="w-5 h-5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d={
+                          item === "ATS Metrics"
+                            ? "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                            : item === "Resume Builder"
+                            ? "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            : item === "Interview Questions Generator"
+                            ? "M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            : item === "Job Portal"
+                            ? "M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                            : "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        }
+                      />
+                    </svg>
+                  </div>
+                  <span className="truncate">{item}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        {/* Bottom section with settings and logout */}
+        <div className="p-4 border-t border-gray-700">
+          <button className="w-full py-2 px-4 rounded flex items-center space-x-3 hover:bg-gray-700 transition-colors touch-manipulation">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              />
+            </svg>
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
     </>
   );
 }

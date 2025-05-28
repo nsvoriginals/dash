@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { atsAtom } from "../../store/AtsStore";
-
 import axios from 'axios';
+import AnimatedLoader from "../AnimatedLoader";
 
 // CircularProgressbar component (simplified for this example)
 const CircularProgressbar = ({ value, text, styles }) => {
@@ -98,12 +98,12 @@ export default function ATSDash() {
 
     setLoading(true);
 
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
     const formData = new FormData();
     formData.append("file", resumeFile);
     formData.append("job_description", jobDescription);
 
     try {
-      const backendUrl =  "http://localhost:8000";
       const response = await axios.post(`${backendUrl}/ats/ats-details`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -131,11 +131,7 @@ export default function ATSDash() {
 
   // Loading state
   if (loading) return (
-    <main className="flex-1 bg-[#131515] overflow-auto">
-      <div className="flex items-center justify-center h-full text-white">
-        <div className="animate-pulse text-xl">Analyzing your resume against job requirements...</div>
-      </div>
-    </main>
+    <AnimatedLoader text="Analyzing your resume against job requirements..." size={64} />
   );
 
   return (
